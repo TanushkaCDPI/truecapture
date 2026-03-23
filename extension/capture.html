@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TrueCapture</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #0f0f13;
+      color: #e2e8f0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    /* ── Camera view ── */
+    #view-camera {
+      width: 100%;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    #preview {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      background: #000;
+    }
+
+    .cam-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0; right: 0;
+      padding: 32px 48px;
+      background: linear-gradient(transparent, rgba(0,0,0,0.8));
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .cam-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.6);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      min-width: 100px;
+    }
+
+    .shutter {
+      width: 72px; height: 72px;
+      border-radius: 50%;
+      border: 3px solid white;
+      background: transparent;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      transition: transform 0.1s;
+    }
+    .shutter:active { transform: scale(0.92); }
+    .shutter-inner {
+      width: 58px; height: 58px;
+      border-radius: 50%;
+      background: white;
+      transition: all 0.15s;
+    }
+    .shutter.recording .shutter-inner {
+      width: 28px; height: 28px;
+      border-radius: 6px;
+      background: #ef4444;
+    }
+
+    .rec-badge {
+      display: flex; align-items: center; gap: 8px;
+      padding: 6px 14px;
+      background: rgba(239,68,68,0.2);
+      border: 1px solid #ef4444;
+      border-radius: 999px;
+      min-width: 100px;
+      justify-content: flex-end;
+    }
+    .rec-badge.hidden { visibility: hidden; }
+    .rec-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #ef4444;
+      animation: blink 1s ease infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+    #rec-time { font-family: monospace; font-size: 13px; color: #ef4444; font-weight: 600; }
+
+    .cam-top {
+      position: absolute;
+      top: 20px; left: 0; right: 0;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 24px;
+    }
+
+    .brand-pill {
+      display: flex; align-items: center; gap: 8px;
+      background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(99,102,241,0.4);
+      border-radius: 999px;
+      padding: 6px 14px;
+      font-size: 13px; font-weight: 600;
+    }
+    .brand-pill svg { color: #6366f1; }
+
+    .close-btn {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(10px);
+      color: white;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+    }
+
+    /* ── Processing view ── */
+    #view-processing {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      text-align: center;
+      padding: 40px;
+    }
+
+    .spinner {
+      width: 56px; height: 56px;
+      border: 4px solid #2d2d3e;
+      border-top-color: #6366f1;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    #proc-msg { font-size: 18px; font-weight: 600; }
+    .proc-sub { font-size: 14px; color: #64748b; }
+
+    .steps {
+      display: flex; gap: 32px; margin-top: 8px;
+    }
+    .step {
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+      opacity: 0.3; transition: opacity 0.3s;
+    }
+    .step.active { opacity: 1; }
+    .step.done { opacity: 0.6; }
+    .step-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: #2d2d3e;
+      transition: background 0.3s;
+    }
+    .step.active .step-dot { background: #6366f1; box-shadow: 0 0 12px #6366f1; }
+    .step.done .step-dot { background: #22c55e; }
+    .step span { font-size: 11px; color: #64748b; }
+
+    /* ── Result view ── */
+    #view-result {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      text-align: center;
+      padding: 48px 40px;
+      max-width: 480px;
+    }
+
+    .check-circle {
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      border: 2px solid #22c55e;
+      background: rgba(34,197,94,0.1);
+      display: flex; align-items: center; justify-content: center;
+      color: #22c55e;
+    }
+
+    #view-result h2 { font-size: 24px; color: #22c55e; }
+    #view-result p { color: #64748b; font-size: 14px; line-height: 1.6; }
+
+    .verify-box {
+      width: 100%;
+      background: #1a1a27;
+      border: 1px solid #2d2d3e;
+      border-radius: 12px;
+      padding: 16px;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .verify-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #64748b; }
+    #verify-url { font-size: 13px; color: #6366f1; word-break: break-all; font-family: monospace; }
+
+    .copy-btn {
+      padding: 10px 16px;
+      background: #6366f1;
+      border: none; border-radius: 8px;
+      color: white; font-size: 14px; font-weight: 600;
+      cursor: pointer; width: 100%;
+      transition: background 0.15s;
+    }
+    .copy-btn:hover { background: #5558e8; }
+
+    .another-btn {
+      padding: 12px 32px;
+      background: transparent;
+      border: 1px solid #2d2d3e;
+      border-radius: 10px;
+      color: #94a3b8; font-size: 14px;
+      cursor: pointer; width: 100%;
+      transition: all 0.15s;
+    }
+    .another-btn:hover { border-color: #6366f1; color: #6366f1; }
+
+    /* ── Error view ── */
+    #view-error {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      text-align: center;
+      padding: 48px 40px;
+      max-width: 400px;
+    }
+    .err-circle {
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      border: 2px solid #ef4444;
+      background: rgba(239,68,68,0.1);
+      display: flex; align-items: center; justify-content: center;
+      color: #ef4444;
+    }
+    #view-error h2 { font-size: 24px; color: #ef4444; }
+    #err-msg { color: #64748b; font-size: 14px; }
+    .retry-btn {
+      padding: 12px 32px;
+      background: #ef4444; border: none;
+      border-radius: 10px; color: white;
+      font-size: 14px; font-weight: 600;
+      cursor: pointer;
+    }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+  <!-- Camera / Recording view -->
+  <div id="view-camera">
+    <video id="preview" autoplay muted playsinline></video>
+
+    <div class="cam-top">
+      <div class="brand-pill">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="10" stroke="#6366f1" stroke-width="2"/>
+          <path d="M12 2C12 2 8 6 8 12C8 18 12 22 12 22" stroke="#6366f1" stroke-width="1.5"/>
+          <path d="M12 2C12 2 16 6 16 12C16 18 12 22 12 22" stroke="#6366f1" stroke-width="1.5"/>
+          <path d="M2 12H22" stroke="#6366f1" stroke-width="1.5"/>
+          <circle cx="12" cy="12" r="2" fill="#6366f1"/>
+        </svg>
+        TrueCapture
+      </div>
+      <button class="close-btn" id="btn-close">✕</button>
+    </div>
+
+    <div class="cam-bar">
+      <span class="cam-label" id="cam-label">Photo</span>
+      <button class="shutter" id="btn-shutter">
+        <div class="shutter-inner"></div>
+      </button>
+      <div class="rec-badge hidden" id="rec-badge">
+        <div class="rec-dot"></div>
+        <span id="rec-time">00:00</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Processing -->
+  <div id="view-processing">
+    <div class="spinner"></div>
+    <div id="proc-msg">Signing with C2PA...</div>
+    <div class="proc-sub">Embedding cryptographic proof into your file</div>
+    <div class="steps">
+      <div class="step" id="s-upload"><div class="step-dot"></div><span>Uploading</span></div>
+      <div class="step" id="s-sign"><div class="step-dot"></div><span>Signing</span></div>
+      <div class="step" id="s-download"><div class="step-dot"></div><span>Downloading</span></div>
+    </div>
+  </div>
+
+  <!-- Result -->
+  <div id="view-result">
+    <div class="check-circle">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
+    </div>
+    <h2>Signed &amp; Downloaded</h2>
+    <p>Your file has been cryptographically signed with C2PA provenance and saved to your Downloads folder.</p>
+    <div class="verify-box">
+      <div class="verify-label">Verification link</div>
+      <div id="verify-url"></div>
+      <button class="copy-btn" id="btn-copy">Copy Verify Link</button>
+    </div>
+    <button class="another-btn" id="btn-another">Capture Another</button>
+  </div>
+
+  <!-- Error -->
+  <div id="view-error">
+    <div class="err-circle">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="15" y1="9" x2="9" y2="15"/>
+        <line x1="9" y1="9" x2="15" y2="15"/>
+      </svg>
+    </div>
+    <h2>Error</h2>
+    <p id="err-msg"></p>
+    <button class="retry-btn" id="btn-retry">Try Again</button>
+  </div>
+
+  <script src="capture.js"></script>
+</body>
+</html>
