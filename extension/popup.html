@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TrueCapture</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="10" stroke="#6366f1" stroke-width="2"/>
+          <path d="M12 2C12 2 8 6 8 12C8 18 12 22 12 22" stroke="#6366f1" stroke-width="1.5"/>
+          <path d="M12 2C12 2 16 6 16 12C16 18 12 22 12 22" stroke="#6366f1" stroke-width="1.5"/>
+          <path d="M2 12H22" stroke="#6366f1" stroke-width="1.5"/>
+          <circle cx="12" cy="12" r="2" fill="#6366f1"/>
+        </svg>
+        <span>TrueCapture</span>
+      </div>
+      <div class="badge">C2PA</div>
+    </header>
+
+    <div id="main-view">
+      <div class="section-title">Capture &amp; Sign</div>
+
+      <div class="capture-grid">
+        <button class="capture-btn" id="btn-photo">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+            <circle cx="12" cy="13" r="4"/>
+          </svg>
+          <span>Photo</span>
+          <small>Webcam snapshot</small>
+        </button>
+
+        <button class="capture-btn" id="btn-screen">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+            <line x1="8" y1="21" x2="16" y2="21"/>
+            <line x1="12" y1="17" x2="12" y2="21"/>
+          </svg>
+          <span>Screen</span>
+          <small>Record screen/tab</small>
+        </button>
+
+        <button class="capture-btn" id="btn-webcam">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <polygon points="23 7 16 12 23 17 23 7"/>
+            <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+          </svg>
+          <span>Video</span>
+          <small>Webcam recording</small>
+        </button>
+
+        <button class="capture-btn" id="btn-tab">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="2" y1="12" x2="22" y2="12"/>
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+          </svg>
+          <span>Zoom/Meet</span>
+          <small>Record current tab</small>
+        </button>
+      </div>
+
+      <div class="backend-row">
+        <label>Backend URL</label>
+        <input type="text" id="backend-url" placeholder="http://localhost:3000" />
+        <button id="btn-save-url">Save</button>
+      </div>
+    </div>
+
+    <!-- Camera Preview -->
+    <div id="camera-view" class="hidden">
+      <video id="camera-preview" autoplay muted playsinline></video>
+      <div class="camera-controls">
+        <button class="ctrl-btn danger" id="btn-cancel-camera">Cancel</button>
+        <button class="ctrl-btn primary" id="btn-snap">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <circle cx="12" cy="12" r="10"/>
+          </svg>
+          Snap
+        </button>
+      </div>
+    </div>
+
+    <!-- Recording View -->
+    <div id="recording-view" class="hidden">
+      <div class="rec-status">
+        <div class="rec-dot"></div>
+        <span id="rec-label">Recording...</span>
+        <span id="rec-timer">00:00</span>
+      </div>
+      <video id="rec-preview" autoplay muted playsinline></video>
+      <div class="camera-controls">
+        <button class="ctrl-btn danger" id="btn-cancel-rec">Cancel</button>
+        <button class="ctrl-btn primary" id="btn-stop-rec">Stop &amp; Sign</button>
+      </div>
+    </div>
+
+    <!-- Processing -->
+    <div id="processing-view" class="hidden">
+      <div class="spinner"></div>
+      <p id="processing-label">Signing with C2PA...</p>
+    </div>
+
+    <!-- Result -->
+    <div id="result-view" class="hidden">
+      <div class="result-icon success">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+      </div>
+      <h3>Signed &amp; Downloaded</h3>
+      <p class="verify-url" id="verify-url-display"></p>
+      <div class="result-actions">
+        <button class="ctrl-btn primary" id="btn-copy-link">Copy Verify Link</button>
+        <button class="ctrl-btn" id="btn-done">Done</button>
+      </div>
+    </div>
+
+    <!-- Error -->
+    <div id="error-view" class="hidden">
+      <div class="result-icon error">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </div>
+      <h3>Error</h3>
+      <p id="error-message"></p>
+      <button class="ctrl-btn" id="btn-retry">Try Again</button>
+    </div>
+  </div>
+  <script type="module" src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TrueCapture — Verify Media</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="app">
+    <header>
+      <a href="https://truecapture.io" class="brand">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="10" stroke="#6366f1" stroke-width="2"/>
+          <path d="M12 2C12 2 8 6 8 12C8 18 12 22 12 22" stroke="#6366f1" stroke-width="1.5"/>
+          <path d="M12 2C12 2 16 6 16 12C16 18 12 22 12 22" stroke="#6366f1" stroke-width="1.5"/>
+          <path d="M2 12H22" stroke="#6366f1" stroke-width="1.5"/>
+          <circle cx="12" cy="12" r="2" fill="#6366f1"/>
+        </svg>
+        <span>TrueCapture</span>
+      </a>
+      <div class="header-right">
+        <span class="c2pa-badge">C2PA Verified</span>
+      </div>
+    </header>
+
+    <main>
+      <!-- Drop Zone -->
+      <div id="drop-section">
+        <div class="drop-zone" id="drop-zone">
+          <div class="drop-icon">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8"/>
+              <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+          </div>
+          <h2>Drop your signed file here</h2>
+          <p>Or click to select an image or video signed by TrueCapture</p>
+          <label class="select-btn" for="file-input">
+            Select File
+          </label>
+          <input type="file" id="file-input" accept="image/*,video/*,.webm,.mp4,.jpg,.jpeg,.png" style="display:none">
+        </div>
+
+        <div class="expected-hash" id="expected-hash-box" style="display:none">
+          <div class="hash-label">Expected verification hash</div>
+          <div class="hash-value" id="expected-hash-value"></div>
+        </div>
+      </div>
+
+      <!-- Verifying -->
+      <div id="verifying-section" class="hidden">
+        <div class="verifying-content">
+          <div class="verify-spinner"></div>
+          <p id="verify-status">Reading C2PA manifest...</p>
+        </div>
+      </div>
+
+      <!-- Result -->
+      <div id="result-section" class="hidden">
+        <!-- Verdict banner -->
+        <div class="verdict" id="verdict-banner">
+          <div class="verdict-icon" id="verdict-icon"></div>
+          <div class="verdict-text">
+            <h2 id="verdict-title"></h2>
+            <p id="verdict-desc"></p>
+          </div>
+        </div>
+
+        <!-- Manifest details -->
+        <div class="manifest-details" id="manifest-details">
+          <h3>C2PA Manifest</h3>
+          <div class="detail-grid" id="detail-grid"></div>
+        </div>
+
+        <!-- Assertions -->
+        <div class="assertions-section" id="assertions-section">
+          <h3>Assertions</h3>
+          <div id="assertions-list"></div>
+        </div>
+
+        <!-- Hash comparison -->
+        <div class="hash-section" id="hash-section">
+          <h3>Integrity Check</h3>
+          <div class="hash-compare" id="hash-compare"></div>
+        </div>
+
+        <button class="verify-another" id="btn-verify-another">Verify Another File</button>
+      </div>
+    </main>
+
+    <footer>
+      <p>TrueCapture uses the <a href="https://c2pa.org" target="_blank" rel="noopener">C2PA</a> standard for content provenance. Files are never uploaded to our servers for verification — everything happens in your browser.</p>
+    </footer>
+  </div>
+
+  <script src="verify.js"></script>
+</body>
+</html>
