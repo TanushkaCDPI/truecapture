@@ -91,6 +91,17 @@ async function verifyFile(file) {
     // Check against URL hash
     const urlHashMatch = !urlHash || verifyHash.startsWith(urlHash) || urlHash.startsWith(verifyHash);
 
+    // Look up DeDi key registry if manifest has a record reference
+    let dediRecord = null;
+    if (manifest.dedi_record_id && manifest.dedi_namespace && manifest.dedi_registry) {
+      updateStatus('Looking up key registry (DeDi)...');
+      dediRecord = await lookupDediRecord(
+        manifest.dedi_namespace,
+        manifest.dedi_registry,
+        manifest.dedi_record_id
+      );
+    }
+
     updateStatus('Done.');
 
     if (sigValid && hashMatch) {
@@ -103,6 +114,7 @@ async function verifyFile(file) {
         sigValid,
         hashMatch,
         urlHashMatch,
+        dediRecord,
       });
     } else if (sigValid && !hashMatch) {
       showResult('tampered', {
@@ -114,6 +126,7 @@ async function verifyFile(file) {
         sigValid,
         hashMatch,
         urlHashMatch,
+        dediRecord,
       });
     } else {
       showResult('tampered', {
@@ -125,6 +138,7 @@ async function verifyFile(file) {
         sigValid,
         hashMatch,
         urlHashMatch,
+        dediRecord,
       });
     }
 
@@ -383,6 +397,29 @@ async function computeVerifyHash(manifestJson, signature) {
   return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('').substring(0, 16);
 }
 
+async function lookupDediRecord(namespace, registry, recordId) {
+  try {
+    const res = await fetch(
+      `https://api.dedi.global/dedi/query/${encodeURIComponent(namespace)}/${encodeURIComponent(registry)}`
+    );
+    if (!res.ok) return null;
+    const body = await res.json();
+    const records = body?.data?.records || [];
+    const record = records.find(r => r.record_id === recordId);
+    if (!record) return null;
+    return {
+      record_id: record.record_id,
+      record_name: record.record_name,
+      state: record.state,
+      created_at: record.created_at,
+      entity: record.details?.entity || null,
+      keyType: record.details?.keyType || null,
+    };
+  } catch {
+    return null;
+  }
+}
+
 function readFileAsBuffer(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -452,6 +489,43 @@ function showResult(verdict, data) {
   } else {
     document.getElementById('manifest-details').style.display = 'none';
     document.getElementById('assertions-section').style.display = 'none';
+  }
+
+  // DeDi identity panel
+  const dediSection = document.getElementById('dedi-section');
+  if (data.dediRecord) {
+    const r = data.dediRecord;
+    dediSection.style.display = '';
+    const stateColor = r.state === 'live' ? 'var(--success)' : 'var(--warning)';
+    dediSection.innerHTML = `
+      <h3>Key Registry <span style="font-size:10px;font-weight:500;color:var(--muted);text-transform:none;letter-spacing:0">via DeDi.global</span></h3>
+      <div class="dedi-card">
+        <div class="dedi-row">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <div>
+            <div class="dedi-name">${escapeHtml(r.entity?.name || 'Unknown')}</div>
+            ${r.entity?.url ? `<a class="dedi-url" href="${escapeHtml(r.entity.url)}" target="_blank" rel="noopener">${escapeHtml(r.entity.url)}</a>` : ''}
+          </div>
+        </div>
+        <div class="dedi-meta">
+          <span class="dedi-badge" style="border-color:${stateColor};color:${stateColor}">${escapeHtml(r.state)}</span>
+          <span>Registered ${r.created_at ? new Date(r.created_at).toLocaleDateString() : 'unknown'}</span>
+          <span>Key type: ${escapeHtml(r.keyType || 'RSA')}</span>
+        </div>
+        <div class="dedi-id">Record ID: ${escapeHtml(r.record_id)}</div>
+      </div>
+    `;
+  } else if (data.manifest?.dedi_record_id) {
+    dediSection.style.display = '';
+    dediSection.innerHTML = `
+      <h3>Key Registry</h3>
+      <div class="dedi-card" style="color:var(--muted)">
+        <div class="dedi-id">Record ID: ${escapeHtml(data.manifest.dedi_record_id)}</div>
+        <div style="font-size:12px;margin-top:6px">Could not fetch registry details — DeDi may be unavailable.</div>
+      </div>
+    `;
+  } else {
+    dediSection.style.display = 'none';
   }
 
   if (data.fileHash && data.manifest?.file_hash) {

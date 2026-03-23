@@ -20,32 +20,32 @@ await fastify.register(cors, {
 });
 
 await fastify.register(multipart, {
-  limits: { fileSize: 500 * 1024 * 1024 }, // 500MB
+  limits: { fileSize: 500 * 1024 * 1024 },
 });
 
-// Key storage
+// ── Key storage paths ─────────────────────────────────────────────
 const KEYS_DIR = join(__dirname, '.keys');
 const KEY_FILE = join(KEYS_DIR, 'signing.pem');
 const CERT_FILE = join(KEYS_DIR, 'cert.pem');
 const PUBKEY_FILE = join(KEYS_DIR, 'public.pem');
+const DEDI_REG_FILE = join(KEYS_DIR, 'dedi-registration.json');
 
+// ── DeDi config from env ──────────────────────────────────────────
+const DEDI_API = 'https://api.dedi.global';
+const DEDI_API_KEY = process.env.DEDI_API_KEY;
+const DEDI_NAMESPACE = process.env.DEDI_NAMESPACE;
+const DEDI_REGISTRY = process.env.DEDI_REGISTRY || 'signing-keys';
+
+// Module-level DeDi registration (set during startup)
+let dediRegistration = null;
+
+// ── Key generation ────────────────────────────────────────────────
 async function ensureKeys() {
   if (!existsSync(KEYS_DIR)) {
     await mkdir(KEYS_DIR, { recursive: true });
   }
 
   if (!existsSync(KEY_FILE) || !existsSync(CERT_FILE)) {
-    // Generate ECDSA P-256 keypair using forge
-    const keypair = forge.pki.rsa.generateKeyPair(2048);
-    // Use ECDSA via node crypto instead
-    const { privateKey, publicKey } = crypto.generateKeyPairSync('ec', {
-      namedCurve: 'P-256',
-      publicKeyEncoding: { type: 'spki', format: 'pem' },
-      privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
-    });
-
-    // Self-signed cert via forge (using RSA for cert compatibility, but ECDSA for signing)
-    // Actually use forge for self-signed cert with ECDSA
     const keys = forge.pki.rsa.generateKeyPair(2048);
     const cert = forge.pki.createCertificate();
     cert.publicKey = keys.publicKey;
@@ -61,13 +61,9 @@ async function ensureKeys() {
     cert.setIssuer(attrs);
     cert.sign(keys.privateKey, forge.md.sha256.create());
 
-    const certPem = forge.pki.certificateToPem(cert);
-    const privateKeyPem = forge.pki.privateKeyToPem(keys.privateKey);
-    const publicKeyPem = forge.pki.publicKeyToPem(keys.publicKey);
-
-    await writeFile(KEY_FILE, privateKeyPem);
-    await writeFile(CERT_FILE, certPem);
-    await writeFile(PUBKEY_FILE, publicKeyPem);
+    await writeFile(KEY_FILE, forge.pki.privateKeyToPem(keys.privateKey));
+    await writeFile(CERT_FILE, forge.pki.certificateToPem(cert));
+    await writeFile(PUBKEY_FILE, forge.pki.publicKeyToPem(keys.publicKey));
 
     fastify.log.info('Generated new signing keypair');
   }
@@ -80,12 +76,99 @@ async function loadKeys() {
   return { privateKeyPem, certPem, publicKeyPem };
 }
 
-// Build a C2PA-like manifest structure embedded in the file
-// Since c2pa-node has complex setup, we implement a simplified but real JUMBF/C2PA embedding
+// ── DeDi registration ─────────────────────────────────────────────
+async function ensureDediRegistration(publicKeyPem) {
+  if (!DEDI_API_KEY || !DEDI_NAMESPACE) {
+    fastify.log.warn('DeDi credentials not set — skipping key registry');
+    return null;
+  }
+
+  // Already registered in this install?
+  if (existsSync(DEDI_REG_FILE)) {
+    const reg = JSON.parse(await readFile(DEDI_REG_FILE, 'utf8'));
+    fastify.log.info(`DeDi: key already registered (record_id: ${reg.record_id})`);
+    return reg;
+  }
+
+  // No local record — check if one already exists in the registry
+  // (handles restarts after file was deleted, or initial seed)
+  try {
+    const queryRes = await fetch(`${DEDI_API}/dedi/query/${DEDI_NAMESPACE}/${DEDI_REGISTRY}`);
+    if (queryRes.ok) {
+      const body = await queryRes.json();
+      const records = body?.data?.records || [];
+      if (records.length > 0) {
+        const existing = records[0];
+        const reg = { record_id: existing.record_id, record_name: existing.record_name };
+        await writeFile(DEDI_REG_FILE, JSON.stringify(reg, null, 2));
+        fastify.log.info(`DeDi: adopted existing record (record_id: ${reg.record_id})`);
+        return reg;
+      }
+    }
+  } catch (err) {
+    fastify.log.warn('DeDi: registry query failed, will attempt fresh registration:', err.message);
+  }
+
+  // Register the public key as a new record
+  const recordName = `truecapture-${crypto.randomBytes(4).toString('hex')}`;
+
+  try {
+    const createRes = await fetch(
+      `${DEDI_API}/dedi/${DEDI_NAMESPACE}/${DEDI_REGISTRY}/save-record-as-draft?publish=true`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${DEDI_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          record_name: recordName,
+          description: 'TrueCapture signing key',
+          details: {
+            public_key_id: recordName,
+            publicKey: publicKeyPem.trim(),
+            keyType: 'Ecdsa',
+            keyFormat: 'pem',
+            entity: {
+              name: 'TrueCapture',
+              url: 'https://truecapture.io',
+            },
+          },
+        }),
+      }
+    );
+
+    if (!createRes.ok) {
+      const err = await createRes.json().catch(() => ({}));
+      throw new Error(err.message || `HTTP ${createRes.status}`);
+    }
+
+    fastify.log.info('DeDi: record created, querying for record_id...');
+
+    // API returns no ID on create — query back to get it
+    const query2 = await fetch(`${DEDI_API}/dedi/query/${DEDI_NAMESPACE}/${DEDI_REGISTRY}`);
+    const body2 = await query2.json();
+    const created = (body2?.data?.records || []).find(r => r.record_name === recordName);
+
+    if (!created) {
+      throw new Error('record not found after creation');
+    }
+
+    const reg = { record_id: created.record_id, record_name: recordName };
+    await writeFile(DEDI_REG_FILE, JSON.stringify(reg, null, 2));
+    fastify.log.info(`DeDi: key registered successfully (record_id: ${reg.record_id})`);
+    return reg;
+
+  } catch (err) {
+    fastify.log.error('DeDi registration failed:', err.message);
+    return null;
+  }
+}
+
+// ── C2PA signing ──────────────────────────────────────────────────
 async function signFile(fileBuffer, mimeType, filename, metadata) {
   const { privateKeyPem, certPem, publicKeyPem } = await loadKeys();
 
-  // Build manifest data
   const manifest = {
     claim_generator: 'TrueCapture/1.0',
     format: mimeType,
@@ -118,13 +201,15 @@ async function signFile(fileBuffer, mimeType, filename, metadata) {
       },
     ],
     public_key_pem: publicKeyPem,
+    // DeDi key registry reference
+    dedi_record_id: dediRegistration?.record_id || null,
+    dedi_namespace: DEDI_NAMESPACE || null,
+    dedi_registry: DEDI_REGISTRY,
   };
 
-  // Hash the original file
   const fileHash = crypto.createHash('sha256').update(fileBuffer).digest('hex');
   manifest.file_hash = fileHash;
 
-  // Sign the manifest
   const manifestJson = JSON.stringify(manifest);
   const sign = createSign('SHA256');
   sign.update(manifestJson);
@@ -133,29 +218,18 @@ async function signFile(fileBuffer, mimeType, filename, metadata) {
   const privateKey = crypto.createPrivateKey(privateKeyPem);
   const signature = sign.sign(privateKey, 'base64');
 
-  // Build the full C2PA box
-  const c2paBox = {
-    version: '1.0',
-    manifest,
-    signature,
-    certificate: certPem,
-  };
+  const c2paBox = { version: '1.0', manifest, signature, certificate: certPem };
+  const c2paBuffer = Buffer.from(JSON.stringify(c2paBox), 'utf8');
 
-  const c2paJson = JSON.stringify(c2paBox);
-  const c2paBuffer = Buffer.from(c2paJson, 'utf8');
-
-  // Embed into file based on type
   let signedBuffer;
   if (mimeType === 'image/jpeg' || mimeType === 'image/jpg') {
     signedBuffer = embedInJpeg(fileBuffer, c2paBuffer);
   } else if (mimeType === 'image/png') {
     signedBuffer = embedInPng(fileBuffer, c2paBuffer);
   } else {
-    // For video/other, append with marker
     signedBuffer = embedInBinary(fileBuffer, c2paBuffer);
   }
 
-  // Generate verify hash (hash of manifest + signature)
   const verifyHash = crypto
     .createHash('sha256')
     .update(manifestJson + signature)
@@ -165,40 +239,27 @@ async function signFile(fileBuffer, mimeType, filename, metadata) {
   return { signedBuffer, verifyHash, manifest, signature };
 }
 
+// ── File embedding ────────────────────────────────────────────────
 function embedInJpeg(jpegBuffer, c2paBuffer) {
-  // JPEG APP11 marker for C2PA (0xFFEB)
   const marker = Buffer.from([0xff, 0xeb]);
   const markerLabel = Buffer.from('C2PA\x00', 'utf8');
-
-  // Length includes the 2-byte length field itself
   const dataLength = markerLabel.length + c2paBuffer.length;
   const lengthField = Buffer.alloc(2);
   lengthField.writeUInt16BE(dataLength + 2);
-
   const app11 = Buffer.concat([marker, lengthField, markerLabel, c2paBuffer]);
-
-  // Insert after JPEG SOI marker (first 2 bytes)
   return Buffer.concat([jpegBuffer.slice(0, 2), app11, jpegBuffer.slice(2)]);
 }
 
 function embedInPng(pngBuffer, c2paBuffer) {
-  // Find end of PNG header (8 bytes) and insert a custom chunk
-  const PNG_SIG_LENGTH = 8;
-
-  // Build custom chunk: caBX (C2PA box)
   const chunkType = Buffer.from('caBX', 'ascii');
   const chunkLength = Buffer.alloc(4);
   chunkLength.writeUInt32BE(c2paBuffer.length);
-
-  // CRC over type + data
   const crcData = Buffer.concat([chunkType, c2paBuffer]);
   const crc = crc32(crcData);
   const crcBuffer = Buffer.alloc(4);
   crcBuffer.writeUInt32BE(crc);
-
   const chunk = Buffer.concat([chunkLength, chunkType, c2paBuffer, crcBuffer]);
-
-  return Buffer.concat([pngBuffer.slice(0, PNG_SIG_LENGTH), chunk, pngBuffer.slice(PNG_SIG_LENGTH)]);
+  return Buffer.concat([pngBuffer.slice(0, 8), chunk, pngBuffer.slice(8)]);
 }
 
 function embedInBinary(fileBuffer, c2paBuffer) {
@@ -208,7 +269,6 @@ function embedInBinary(fileBuffer, c2paBuffer) {
   return Buffer.concat([fileBuffer, MAGIC, lengthBuffer, c2paBuffer]);
 }
 
-// Simple CRC32 implementation
 function crc32(buf) {
   let crc = 0xffffffff;
   const table = makeCrcTable();
@@ -230,8 +290,13 @@ function makeCrcTable() {
   return table;
 }
 
-// Routes
-fastify.get('/health', async () => ({ status: 'ok', service: 'TrueCapture Backend' }));
+// ── Routes ────────────────────────────────────────────────────────
+fastify.get('/health', async () => ({
+  status: 'ok',
+  service: 'TrueCapture Backend',
+  dedi_registered: !!dediRegistration,
+  dedi_record_id: dediRegistration?.record_id || null,
+}));
 
 fastify.post('/sign', async (request, reply) => {
   try {
@@ -244,20 +309,12 @@ fastify.post('/sign', async (request, reply) => {
     for await (const part of parts) {
       if (part.type === 'file') {
         const chunks = [];
-        for await (const chunk of part.file) {
-          chunks.push(chunk);
-        }
+        for await (const chunk of part.file) chunks.push(chunk);
         fileBuffer = Buffer.concat(chunks);
         filename = part.filename || 'capture';
         mimeType = part.mimetype || 'image/jpeg';
-      } else {
-        if (part.fieldname === 'metadata') {
-          try {
-            metadata = JSON.parse(part.value);
-          } catch {
-            metadata = {};
-          }
-        }
+      } else if (part.fieldname === 'metadata') {
+        try { metadata = JSON.parse(part.value); } catch { metadata = {}; }
       }
     }
 
@@ -266,20 +323,19 @@ fastify.post('/sign', async (request, reply) => {
     }
 
     const { signedBuffer, verifyHash, manifest } = await signFile(
-      fileBuffer,
-      mimeType,
-      filename,
-      metadata
+      fileBuffer, mimeType, filename, metadata
     );
 
-    const verifyUrl = `https://truecap.io/${verifyHash}`;
+    const verifyUrl = `${process.env.VERIFY_BASE_URL || 'https://truecap.io'}/${verifyHash}`;
 
     reply.header('Content-Type', mimeType);
     reply.header('Content-Disposition', `attachment; filename="signed_${filename}"`);
     reply.header('X-Verify-Hash', verifyHash);
     reply.header('X-Verify-URL', verifyUrl);
     reply.header('X-C2PA-Signed', 'true');
-    reply.header('Access-Control-Expose-Headers', 'X-Verify-Hash, X-Verify-URL, X-C2PA-Signed');
+    reply.header('X-Dedi-Record-Id', manifest.dedi_record_id || '');
+    reply.header('Access-Control-Expose-Headers',
+      'X-Verify-Hash, X-Verify-URL, X-C2PA-Signed, X-Dedi-Record-Id');
 
     return reply.send(signedBuffer);
   } catch (err) {
@@ -290,11 +346,19 @@ fastify.post('/sign', async (request, reply) => {
 
 fastify.get('/public-key', async () => {
   const { publicKeyPem } = await loadKeys();
-  return { publicKey: publicKeyPem };
+  return {
+    publicKey: publicKeyPem,
+    dedi_record_id: dediRegistration?.record_id || null,
+    dedi_namespace: DEDI_NAMESPACE || null,
+    dedi_registry: DEDI_REGISTRY,
+  };
 });
 
-// Start
+// ── Start ─────────────────────────────────────────────────────────
 await ensureKeys();
+const { publicKeyPem } = await loadKeys();
+dediRegistration = await ensureDediRegistration(publicKeyPem);
+
 const port = process.env.PORT || 3000;
 const host = process.env.HOST || '0.0.0.0';
 await fastify.listen({ port, host });
