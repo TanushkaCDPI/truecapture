@@ -195,7 +195,7 @@ async function signFile(fileBuffer, mimeType, filename, metadata) {
         data: {
           '@context': 'https://schema.org/',
           '@type': 'CreativeWork',
-          author: [{ '@type': 'Person', name: metadata.author || 'TrueCapture User' }],
+          author: [{ '@type': 'Organization', name: 'TrueCapture', url: 'https://www.truecapture.global' }],
           dateCreated: metadata.capturedAt || new Date().toISOString(),
         },
       },
