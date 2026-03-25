@@ -1,5 +1,13 @@
 node_modules/
+**/node_modules/
 .keys/
+**/.keys/
 .env
+**/.env
+.env.local
 *.log
 .DS_Store
+**/.DS_Store
+dist/
+build/
+.claude/

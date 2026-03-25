@@ -399,22 +399,9 @@ async function computeVerifyHash(manifestJson, signature) {
 
 async function lookupDediRecord(namespace, registry, recordId) {
   try {
-    const res = await fetch(
-      `https://api.dedi.global/dedi/query/${encodeURIComponent(namespace)}/${encodeURIComponent(registry)}`
-    );
+    const res = await fetch(`http://localhost:3000/dedi-lookup/${encodeURIComponent(recordId)}`);
     if (!res.ok) return null;
-    const body = await res.json();
-    const records = body?.data?.records || [];
-    const record = records.find(r => r.record_id === recordId);
-    if (!record) return null;
-    return {
-      record_id: record.record_id,
-      record_name: record.record_name,
-      state: record.state,
-      created_at: record.created_at,
-      entity: record.details?.entity || null,
-      keyType: record.details?.keyType || null,
-    };
+    return await res.json();
   } catch {
     return null;
   }

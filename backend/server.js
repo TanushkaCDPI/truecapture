@@ -344,6 +344,38 @@ fastify.post('/sign', async (request, reply) => {
   }
 });
 
+// Proxy DeDi record lookup — api.dedi.global returns 500 when Origin header
+// is present (browser CORS), so the verify page calls this instead.
+fastify.get('/dedi-lookup/:recordId', async (request, reply) => {
+  if (!DEDI_NAMESPACE || !DEDI_REGISTRY) {
+    return reply.status(503).send({ error: 'DeDi not configured' });
+  }
+  try {
+    const res = await fetch(
+      `${DEDI_API}/dedi/query/${DEDI_NAMESPACE}/${DEDI_REGISTRY}`
+    );
+    if (!res.ok) return reply.status(res.status).send({ error: 'DeDi query failed' });
+
+    const body = await res.json();
+    const records = body?.data?.records || [];
+    const record = records.find(r => r.record_id === request.params.recordId);
+
+    if (!record) return reply.status(404).send({ error: 'Record not found' });
+
+    return {
+      record_id: record.record_id,
+      record_name: record.record_name,
+      state: record.state,
+      created_at: record.created_at,
+      entity: record.details?.entity || null,
+      keyType: record.details?.keyType || null,
+    };
+  } catch (err) {
+    fastify.log.error('DeDi lookup failed:', err.message);
+    return reply.status(502).send({ error: 'DeDi unavailable' });
+  }
+});
+
 fastify.get('/public-key', async () => {
   const { publicKeyPem } = await loadKeys();
   return {
