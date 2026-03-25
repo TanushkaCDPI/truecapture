@@ -1,7 +1,7 @@
 const params = new URLSearchParams(location.search);
 const mode = params.get('mode') || 'photo'; // photo | webcam | screen
 
-let backendUrl = 'https://backend-production-d4fa.up.railway.app';
+let backendUrl = 'https://api.truecapture.global';
 let currentStream = null;
 let mediaRecorder = null;
 let recordedChunks = [];
@@ -140,7 +140,7 @@ async function signAndDownload(blob, filename, mimeType, source) {
     }
 
     const hash = response.headers.get('X-Verify-Hash');
-    verifyUrl = response.headers.get('X-Verify-URL') || `https://verify-production-fbd1.up.railway.app/${hash}`;
+    verifyUrl = response.headers.get('X-Verify-URL') || `https://truecapture.global/${hash}`;
 
     setStep('download');
     document.getElementById('proc-msg').textContent = 'Saving signed file...';

@@ -12,7 +12,7 @@
     "tabCapture"
   ],
   "host_permissions": [
-    "https://backend-production-d4fa.up.railway.app/*"
+    "https://api.truecapture.global/*"
   ],
   "action": {
     "default_popup": "popup.html",

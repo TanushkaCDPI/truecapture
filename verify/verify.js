@@ -1,6 +1,6 @@
 // Verify page — reads C2PA manifest from dropped/selected file, verifies signature, shows verdict
 
-const BACKEND_URL = 'https://backend-production-d4fa.up.railway.app';
+const BACKEND_URL = 'https://api.truecapture.global';
 const BACKEND_PUBKEY_URL = `${BACKEND_URL}/public-key`;
 
 // Check URL for expected hash

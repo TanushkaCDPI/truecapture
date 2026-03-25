@@ -326,7 +326,7 @@ fastify.post('/sign', async (request, reply) => {
       fileBuffer, mimeType, filename, metadata
     );
 
-    const verifyUrl = `${process.env.VERIFY_BASE_URL || 'https://truecap.io'}/${verifyHash}`;
+    const verifyUrl = `${process.env.VERIFY_BASE_URL || 'https://truecapture.global'}/${verifyHash}`;
 
     reply.header('Content-Type', mimeType);
     reply.header('Content-Disposition', `attachment; filename="signed_${filename}"`);
