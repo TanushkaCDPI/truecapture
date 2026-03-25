@@ -332,7 +332,7 @@ fastify.post('/sign', async (request, reply) => {
     // Store manifest so the verify page can look it up by hash
     manifestStore.set(verifyHash, { manifest, signature, signedAt: new Date().toISOString() });
 
-    const verifyUrl = `${process.env.VERIFY_BASE_URL || 'https://truecapture.global'}/${verifyHash}`;
+    const verifyUrl = `${process.env.VERIFY_BASE_URL || 'https://www.truecapture.global/verify'}/${verifyHash}`;
 
     reply.header('Content-Type', mimeType);
     reply.header('Content-Disposition', `attachment; filename="signed_${filename}"`);

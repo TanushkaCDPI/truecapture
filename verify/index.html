@@ -3,102 +3,232 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TrueCapture — Verify Media</title>
+  <title>TrueCapture — Prove What's Real</title>
+  <meta name="description" content="Digitally sign any photo or video the moment you capture it. Tamper-proof, verifiable by anyone, anywhere.">
   <script>if (location.hostname === 'truecapture.global') location.replace('https://www.truecapture.global' + location.pathname + location.search + location.hash);</script>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="landing.css">
 </head>
 <body>
-  <div id="app">
-    <header>
-      <a href="https://www.truecapture.global" class="brand">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-          <circle cx="12" cy="12" r="10" stroke="#6366f1" stroke-width="2"/>
-          <path d="M12 2C12 2 8 6 8 12C8 18 12 22 12 22" stroke="#6366f1" stroke-width="1.5"/>
-          <path d="M12 2C12 2 16 6 16 12C16 18 12 22 12 22" stroke="#6366f1" stroke-width="1.5"/>
-          <path d="M2 12H22" stroke="#6366f1" stroke-width="1.5"/>
-          <circle cx="12" cy="12" r="2" fill="#6366f1"/>
-        </svg>
-        <span>TrueCapture</span>
-      </a>
-      <div class="header-right">
-        <span class="c2pa-badge">C2PA Verified</span>
-      </div>
-    </header>
 
-    <main>
-      <!-- Drop Zone -->
-      <div id="drop-section">
-        <div class="drop-zone" id="drop-zone">
-          <div class="drop-icon">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-              <polyline points="17 8 12 3 7 8"/>
-              <line x1="12" y1="3" x2="12" y2="15"/>
+  <!-- NAV -->
+  <nav>
+    <div class="nav-inner">
+      <a href="/" class="nav-logo">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="10" stroke="#4338ca" stroke-width="2"/>
+          <path d="M12 2C12 2 8 6 8 12C8 18 12 22 12 22" stroke="#4338ca" stroke-width="1.5"/>
+          <path d="M12 2C12 2 16 6 16 12C16 18 12 22 12 22" stroke="#4338ca" stroke-width="1.5"/>
+          <path d="M2 12H22" stroke="#4338ca" stroke-width="1.5"/>
+          <circle cx="12" cy="12" r="2" fill="#4338ca"/>
+        </svg>
+        TrueCapture
+      </a>
+      <a href="/verify" class="nav-verify">Verify a file →</a>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-badge">C2PA · DeDi.global · Open Standard</div>
+      <h1>Prove what's real.</h1>
+      <p class="hero-sub">Digitally sign any photo or video the moment you capture it.<br>Tamper-proof, verifiable by anyone, anywhere.</p>
+      <div class="hero-actions">
+        <a href="#install" class="btn btn-primary">Install on Chrome</a>
+        <a href="/verify" class="btn btn-secondary">Verify a file →</a>
+      </div>
+      <div class="hero-technical">
+        <p>TrueCapture implements the C2PA open standard — the same cryptographic provenance protocol used by Adobe, Google, Sony, the BBC and Google Pixel. A SHA-256 hash of your media is signed with an RSA key at capture time, embedded as a C2PA manifest in the file itself, and the public key is registered on <a href="https://dedi.global" target="_blank" rel="noopener">DeDi.global</a> — a decentralised public key directory. Verification is stateless and fully client-side. If a single pixel changes, the signature breaks.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="how-it-works">
+    <div class="container">
+      <h2 class="section-title">How it works</h2>
+      <div class="steps">
+        <div class="step">
+          <div class="step-number">1</div>
+          <div class="step-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+              <circle cx="12" cy="13" r="4"/>
             </svg>
           </div>
-          <h2>Drop your signed file here</h2>
-          <p>Or click to select an image or video signed by TrueCapture</p>
-          <label class="select-btn" for="file-input">
-            Select File
-          </label>
-          <input type="file" id="file-input" accept="image/*,video/*,.webm,.mp4,.jpg,.jpeg,.png" style="display:none">
+          <h3>Capture</h3>
+          <p>Take a photo, record a video, or go live on screen or camera using the TrueCapture Chrome extension or mobile web app.</p>
         </div>
-
-        <div class="expected-hash" id="expected-hash-box" style="display:none">
-          <div class="hash-label">Expected verification hash</div>
-          <div class="hash-value" id="expected-hash-value"></div>
-        </div>
-      </div>
-
-      <!-- Verifying -->
-      <div id="verifying-section" class="hidden">
-        <div class="verifying-content">
-          <div class="verify-spinner"></div>
-          <p id="verify-status">Reading C2PA manifest...</p>
-        </div>
-      </div>
-
-      <!-- Result -->
-      <div id="result-section" class="hidden">
-        <!-- Verdict banner -->
-        <div class="verdict" id="verdict-banner">
-          <div class="verdict-icon" id="verdict-icon"></div>
-          <div class="verdict-text">
-            <h2 id="verdict-title"></h2>
-            <p id="verdict-desc"></p>
+        <div class="step-connector"></div>
+        <div class="step">
+          <div class="step-number">2</div>
+          <div class="step-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
           </div>
+          <h3>Sign</h3>
+          <p>Your media is instantly signed with a cryptographic key using the C2PA standard. The signature is embedded in the file itself. Public key registered on DeDi.global.</p>
         </div>
-
-        <!-- Manifest details -->
-        <div class="manifest-details" id="manifest-details">
-          <h3>C2PA Manifest</h3>
-          <div class="detail-grid" id="detail-grid"></div>
+        <div class="step-connector"></div>
+        <div class="step">
+          <div class="step-number">3</div>
+          <div class="step-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+              <polyline points="16 6 12 2 8 6"/>
+              <line x1="12" y1="2" x2="12" y2="15"/>
+            </svg>
+          </div>
+          <h3>Share</h3>
+          <p>Paste the verify link in your caption or message. Anyone who sees it taps the link for an instant verdict — no app needed.</p>
         </div>
-
-        <!-- Assertions -->
-        <div class="assertions-section" id="assertions-section">
-          <h3>Assertions</h3>
-          <div id="assertions-list"></div>
-        </div>
-
-        <!-- DeDi key registry -->
-        <div class="manifest-details" id="dedi-section"></div>
-
-        <!-- Hash comparison -->
-        <div class="hash-section" id="hash-section">
-          <h3>Integrity Check</h3>
-          <div class="hash-compare" id="hash-compare"></div>
-        </div>
-
-        <button class="verify-another" id="btn-verify-another">Verify Another File</button>
       </div>
-    </main>
+    </div>
+  </section>
 
-    <footer>
-      <p>TrueCapture uses the <a href="https://c2pa.org" target="_blank" rel="noopener">C2PA</a> standard for content provenance. Files are never uploaded to our servers for verification — everything happens in your browser.</p>
-    </footer>
-  </div>
+  <!-- USE CASES -->
+  <section class="use-cases">
+    <div class="container">
+      <h2 class="section-title">Built for every capture</h2>
+      <div class="use-case-grid">
+        <div class="use-case-card">
+          <div class="use-case-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <rect x="2" y="3" width="20" height="14" rx="2"/>
+              <line x1="8" y1="21" x2="16" y2="21"/>
+              <line x1="12" y1="17" x2="12" y2="21"/>
+            </svg>
+          </div>
+          <h3>Broadcasting live on Zoom, Meet or Teams</h3>
+          <p>Open the extension, click Zoom/Meet. It records and signs your active call tab — every frame cryptographically attested.</p>
+        </div>
+        <div class="use-case-card">
+          <div class="use-case-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="12" cy="12" r="10"/>
+              <polygon points="10 8 16 12 10 16 10 8"/>
+            </svg>
+          </div>
+          <h3>Going live on Instagram or YouTube</h3>
+          <p>Click Screen to record and sign your live stream as you broadcast it. Proof of what you said, when you said it.</p>
+        </div>
+        <div class="use-case-card">
+          <div class="use-case-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <polygon points="23 7 16 12 23 17 23 7"/>
+              <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+            </svg>
+          </div>
+          <h3>Recording yourself on camera</h3>
+          <p>Click Video to record from your webcam. For testimony, statements, or signed content that needs to stand up to scrutiny.</p>
+        </div>
+        <div class="use-case-card">
+          <div class="use-case-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+              <circle cx="12" cy="13" r="4"/>
+            </svg>
+          </div>
+          <h3>Taking photo proof</h3>
+          <p>Click Photo for a signed webcam snapshot. For evidence, journalism, or identity verification where provenance matters.</p>
+        </div>
+      </div>
+    </div>
+  </section>
 
-  <script src="verify.js"></script>
+  <!-- PLATFORM -->
+  <section class="platforms">
+    <div class="container">
+      <h2 class="section-title">Works everywhere you work</h2>
+      <div class="platform-grid">
+        <div class="platform-card">
+          <div class="platform-icon chrome-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#4338ca" stroke-width="1.5">
+              <circle cx="12" cy="12" r="10"/>
+              <circle cx="12" cy="12" r="4"/>
+              <line x1="21.17" y1="8" x2="12" y2="8"/>
+              <line x1="3.95" y1="6.06" x2="8.54" y2="14"/>
+              <line x1="10.88" y1="21.94" x2="15.46" y2="14"/>
+            </svg>
+          </div>
+          <h3>Chrome Extension</h3>
+          <p>Install the TrueCapture extension. Click the icon in your toolbar. Choose <strong>Photo</strong>, <strong>Video</strong>, <strong>Screen</strong>, or <strong>Zoom/Meet</strong>.</p>
+          <span class="platform-tag">Laptop &amp; Desktop</span>
+        </div>
+        <div class="platform-card">
+          <div class="platform-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#4338ca" stroke-width="1.5">
+              <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/>
+              <line x1="12" y1="18" x2="12.01" y2="18"/>
+            </svg>
+          </div>
+          <h3>iPhone</h3>
+          <p>Open <strong>truecapture.global/sign</strong> in Safari. Tap Record — your native camera opens. Sign and download in one tap.</p>
+          <span class="platform-tag">iOS · Safari</span>
+        </div>
+        <div class="platform-card">
+          <div class="platform-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#4338ca" stroke-width="1.5">
+              <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/>
+              <line x1="12" y1="18" x2="12.01" y2="18"/>
+            </svg>
+          </div>
+          <h3>Android</h3>
+          <p>Open <strong>truecapture.global/sign</strong> in Chrome. Record video directly in the browser. Sign and download.</p>
+          <span class="platform-tag">Android · Chrome</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- INSTALL CTA -->
+  <section class="install-cta" id="install">
+    <div class="container">
+      <h2>Start signing your media today.</h2>
+      <p>Free. No account required. Works in your existing browser.</p>
+      <div class="install-actions">
+        <a href="#" class="btn btn-primary btn-large">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          Install Chrome Extension
+        </a>
+        <a href="https://www.truecapture.global/sign" class="btn btn-outline btn-large">Use on Mobile</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="container">
+      <div class="footer-inner">
+        <a href="/" class="footer-logo">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="10" stroke="#4338ca" stroke-width="2"/>
+            <path d="M12 2C12 2 8 6 8 12C8 18 12 22 12 22" stroke="#4338ca" stroke-width="1.5"/>
+            <path d="M12 2C12 2 16 6 16 12C16 18 12 22 12 22" stroke="#4338ca" stroke-width="1.5"/>
+            <path d="M2 12H22" stroke="#4338ca" stroke-width="1.5"/>
+            <circle cx="12" cy="12" r="2" fill="#4338ca"/>
+          </svg>
+          TrueCapture
+        </a>
+        <div class="footer-links">
+          <a href="/verify">Verify a file</a>
+          <a href="https://c2pa.org" target="_blank" rel="noopener">C2PA Standard</a>
+          <a href="https://dedi.global" target="_blank" rel="noopener">DeDi.global</a>
+          <a href="https://github.com/TanushkaCDPI/truecapture" target="_blank" rel="noopener">GitHub</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>Built on C2PA · Keys on DeDi.global · Deployed on Railway</p>
+        <p>Build with us: <strong>Tanushka Vaid</strong>, Chief of Staff, CDPI · <a href="mailto:tanushka@cdpi.dev">tanushka@cdpi.dev</a></p>
+      </div>
+    </div>
+  </footer>
+
 </body>
 </html>

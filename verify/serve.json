@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/verify/:hash", "destination": "/verify/index.html" },
+    { "source": "/verify", "destination": "/verify/index.html" }
+  ]
+}

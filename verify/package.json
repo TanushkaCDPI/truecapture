@@ -2,6 +2,6 @@
   "name": "truecapture-verify",
   "version": "1.0.0",
   "scripts": {
-    "start": "npx serve -s . -l ${PORT:-8080}"
+    "start": "npx serve . -l ${PORT:-8080}"
   }
 }

@@ -191,7 +191,7 @@ async function processFile(file, metadata) {
     }
 
     const verifyHash = response.headers.get('X-Verify-Hash');
-    const verifyUrl = response.headers.get('X-Verify-URL') || `https://truecapture.global/${verifyHash}`;
+    const verifyUrl = response.headers.get('X-Verify-URL') || `https://www.truecapture.global/verify/${verifyHash}`;
 
     setStep('download');
     document.getElementById('processing-msg').textContent = 'Saving signed file...';
