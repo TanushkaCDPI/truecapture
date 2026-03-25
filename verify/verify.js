@@ -1,6 +1,7 @@
 // Verify page — reads C2PA manifest from dropped/selected file, verifies signature, shows verdict
 
-const BACKEND_PUBKEY_URL = 'http://localhost:3000/public-key';
+const BACKEND_URL = 'https://backend-production-d4fa.up.railway.app';
+const BACKEND_PUBKEY_URL = `${BACKEND_URL}/public-key`;
 
 // Check URL for expected hash
 const urlHash = window.location.pathname.split('/').pop() ||
@@ -399,7 +400,7 @@ async function computeVerifyHash(manifestJson, signature) {
 
 async function lookupDediRecord(namespace, registry, recordId) {
   try {
-    const res = await fetch(`http://localhost:3000/dedi-lookup/${encodeURIComponent(recordId)}`);
+    const res = await fetch(`${BACKEND_URL}/dedi-lookup/${encodeURIComponent(recordId)}`);
     if (!res.ok) return null;
     return await res.json();
   } catch {
