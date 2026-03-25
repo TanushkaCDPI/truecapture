@@ -12,8 +12,7 @@
     "tabCapture"
   ],
   "host_permissions": [
-    "http://localhost:3000/*",
-    "https://api.truecapture.io/*"
+    "https://backend-production-d4fa.up.railway.app/*"
   ],
   "action": {
     "default_popup": "popup.html",

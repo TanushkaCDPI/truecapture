@@ -1,4 +1,4 @@
-const BACKEND_DEFAULT = 'http://localhost:3000';
+const BACKEND_DEFAULT = 'https://backend-production-d4fa.up.railway.app';
 let backendUrl = BACKEND_DEFAULT;
 let currentStream = null;
 let mediaRecorder = null;
@@ -117,7 +117,7 @@ async function signAndDownload(blob, filename, mimeType, source) {
     }
 
     const hash = response.headers.get('X-Verify-Hash');
-    currentVerifyUrl = response.headers.get('X-Verify-URL') || `https://truecap.io/${hash}`;
+    currentVerifyUrl = response.headers.get('X-Verify-URL') || `https://verify-production-fbd1.up.railway.app/${hash}`;
 
     document.getElementById('processing-label').textContent = 'Downloading signed file...';
     const signedBlob = await response.blob();
