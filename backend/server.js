@@ -290,6 +290,9 @@ function makeCrcTable() {
   return table;
 }
 
+// ── Manifest store (in-memory, keyed by verifyHash) ───────────────
+const manifestStore = new Map();
+
 // ── Routes ────────────────────────────────────────────────────────
 fastify.get('/health', async () => ({
   status: 'ok',
@@ -322,9 +325,12 @@ fastify.post('/sign', async (request, reply) => {
       return reply.status(400).send({ error: 'No file provided' });
     }
 
-    const { signedBuffer, verifyHash, manifest } = await signFile(
+    const { signedBuffer, verifyHash, manifest, signature } = await signFile(
       fileBuffer, mimeType, filename, metadata
     );
+
+    // Store manifest so the verify page can look it up by hash
+    manifestStore.set(verifyHash, { manifest, signature, signedAt: new Date().toISOString() });
 
     const verifyUrl = `${process.env.VERIFY_BASE_URL || 'https://truecapture.global'}/${verifyHash}`;
 
@@ -342,6 +348,12 @@ fastify.post('/sign', async (request, reply) => {
     fastify.log.error(err);
     return reply.status(500).send({ error: 'Signing failed', details: err.message });
   }
+});
+
+fastify.get('/manifest/:hash', async (request, reply) => {
+  const entry = manifestStore.get(request.params.hash);
+  if (!entry) return reply.status(404).send({ error: 'Not found' });
+  return entry;
 });
 
 // Proxy DeDi record lookup — api.dedi.global returns 500 when Origin header

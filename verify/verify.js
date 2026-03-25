@@ -8,8 +8,8 @@ const urlHash = window.location.pathname.split('/').pop() ||
                 new URLSearchParams(window.location.search).get('hash');
 
 if (urlHash && urlHash.length > 0) {
-  document.getElementById('expected-hash-box').style.display = 'block';
-  document.getElementById('expected-hash-value').textContent = urlHash;
+  // Auto-verify from URL hash — no file upload needed
+  autoVerifyFromHash(urlHash);
 }
 
 // Drop zone interactions
@@ -50,6 +50,68 @@ function showSection(id) {
   // Drop section uses display style, not hidden class
   if (id === 'drop-section') {
     document.getElementById('drop-section').style.display = '';
+  }
+}
+
+async function autoVerifyFromHash(hash) {
+  showSection('verifying-section');
+  updateStatus('Looking up signed file...');
+
+  try {
+    const res = await fetch(`${BACKEND_URL}/manifest/${hash}`);
+    if (!res.ok) {
+      showSection('drop-section');
+      document.getElementById('expected-hash-box').style.display = 'block';
+      document.getElementById('expected-hash-value').textContent = hash;
+      return;
+    }
+
+    const { manifest, signature, signedAt } = await res.json();
+
+    updateStatus('Verifying cryptographic signature...');
+    const manifestJson = JSON.stringify(manifest);
+    const sigValid = await verifyWithManifestKey(manifestJson, signature, manifest.public_key_pem);
+    const verifyHash = await computeVerifyHash(manifestJson, signature);
+
+    let dediRecord = null;
+    if (manifest.dedi_record_id && manifest.dedi_namespace && manifest.dedi_registry) {
+      updateStatus('Looking up key registry (DeDi)...');
+      dediRecord = await lookupDediRecord(
+        manifest.dedi_namespace, manifest.dedi_registry, manifest.dedi_record_id
+      );
+    }
+
+    updateStatus('Done.');
+
+    if (sigValid) {
+      showResult('authentic', {
+        title: 'Authentic',
+        description: 'This file has a valid C2PA signature. It was signed by TrueCapture and has not been tampered with.',
+        manifest,
+        signedAt,
+        verifyHash,
+        sigValid,
+        hashMatch: null,
+        dediRecord,
+      });
+    } else {
+      showResult('tampered', {
+        title: 'Invalid Signature',
+        description: 'The cryptographic signature on this file is invalid.',
+        manifest,
+        signedAt,
+        verifyHash,
+        sigValid,
+        hashMatch: null,
+        dediRecord,
+      });
+    }
+  } catch (err) {
+    showResult('unknown', {
+      title: 'Verification Error',
+      description: 'An error occurred during verification: ' + err.message,
+      manifest: null,
+    });
   }
 }
 
@@ -447,13 +509,13 @@ function showResult(verdict, data) {
 
     const details = [
       ['Signed By', m.claim_generator || 'Unknown'],
-      ['Created', m.created ? new Date(m.created).toLocaleString() : 'Unknown'],
+      ['Signed At', data.signedAt ? new Date(data.signedAt).toLocaleString() : (m.created ? new Date(m.created).toLocaleString() : 'Unknown')],
       ['Captured At', m.captured_at ? new Date(m.captured_at).toLocaleString() : 'Unknown'],
       ['Source', m.source || 'Unknown'],
+      ['Device', m.device || 'Unknown'],
       ['Format', m.format || 'Unknown'],
       ['Title', m.title || 'Untitled'],
-      ['Verify Hash', data.verifyHash || 'N/A'],
-      ['Signature Valid', data.sigValid !== undefined ? (data.sigValid ? 'Yes' : 'No') : 'N/A'],
+      ['Signature Valid', data.sigValid !== undefined ? (data.sigValid ? '✓ Yes' : '✗ No') : 'N/A'],
     ];
 
     details.forEach(([key, value]) => {
@@ -516,7 +578,7 @@ function showResult(verdict, data) {
     dediSection.style.display = 'none';
   }
 
-  if (data.fileHash && data.manifest?.file_hash) {
+  if (data.hashMatch !== null && data.fileHash && data.manifest?.file_hash) {
     document.getElementById('hash-section').style.display = '';
     const compare = document.getElementById('hash-compare');
     const match = data.hashMatch;
