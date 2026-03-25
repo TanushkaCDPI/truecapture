@@ -160,12 +160,6 @@ document.getElementById('btn-flip').addEventListener('click', async () => {
   await openCamera(currentMode);
 });
 
-// File upload
-document.getElementById('file-upload').addEventListener('change', async (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-  await processFile(file, { source: 'upload', capturedAt: new Date().toISOString() });
-});
 
 // ── PROCESS & SIGN ───────────────────────────────────────────────
 async function processFile(file, metadata) {
@@ -211,6 +205,7 @@ async function processFile(file, metadata) {
 
     // Show result
     document.getElementById('result-verify-url').textContent = verifyUrl;
+    document.getElementById('result-verify-url').title = verifyUrl;
     showScreen('screen-result');
 
     // Auto-copy on mobile
@@ -240,10 +235,10 @@ document.getElementById('btn-copy-verify').addEventListener('click', async () =>
   try {
     await navigator.clipboard.writeText(url);
     const btn = document.getElementById('btn-copy-verify');
-    btn.textContent = 'Copied!';
+    btn.textContent = '✓ Copied!';
     setTimeout(() => {
-      btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy Link`;
-    }, 1500);
+      btn.innerHTML = `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy Verify Link`;
+    }, 2000);
   } catch {}
 });
 
