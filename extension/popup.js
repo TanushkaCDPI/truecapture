@@ -117,7 +117,7 @@ async function signAndDownload(blob, filename, mimeType, source) {
     }
 
     const hash = response.headers.get('X-Verify-Hash');
-    currentVerifyUrl = response.headers.get('X-Verify-URL') || `https://truecapture.global/${hash}`;
+    currentVerifyUrl = response.headers.get('X-Verify-URL') || `https://www.truecapture.global/${hash}`;
 
     document.getElementById('processing-label').textContent = 'Downloading signed file...';
     const signedBlob = await response.blob();
