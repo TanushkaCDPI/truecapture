@@ -33,13 +33,19 @@
 
       <!-- ── HOME ─────────────────────────────────────── -->
       <div id="screen-home">
+
         <div class="capture-intro">
           <h2>Capture &amp; Sign</h2>
           <p>Your media is cryptographically signed at the moment of capture. If anything changes, the signature breaks.</p>
         </div>
 
-        <!-- iPhone: native camera via input[capture] -->
-        <div id="ios-buttons" class="capture-grid hidden">
+        <!--
+          Take Photo: always a <label> — clicking it triggers the hidden file input.
+          On iPhone, capture="environment" opens the native camera.
+          On desktop/Android it opens a file/camera picker.
+        -->
+        <div class="capture-grid">
+
           <label class="capture-card" for="input-photo">
             <div class="capture-icon">
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -49,12 +55,17 @@
             </div>
             <div class="capture-text">
               <div class="capture-label">Take Photo</div>
-              <div class="capture-sublabel">Opens iPhone camera</div>
+              <div class="capture-sublabel">Opens camera</div>
             </div>
           </label>
           <input type="file" id="input-photo" accept="image/*" capture="environment" style="display:none">
 
-          <label class="capture-card" for="input-video">
+          <!--
+            Record Video: a <button> — JS decides at click time:
+            iOS  → programmatically clicks input-video (native camera)
+            else → opens MediaRecorder in browser
+          -->
+          <button class="capture-card" id="btn-record-video">
             <div class="capture-icon">
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                 <polygon points="23 7 16 12 23 17 23 7"/>
@@ -63,39 +74,11 @@
             </div>
             <div class="capture-text">
               <div class="capture-label">Record Video</div>
-              <div class="capture-sublabel">Opens iPhone camera</div>
+              <div class="capture-sublabel">Opens camera</div>
             </div>
-          </label>
+          </button>
           <input type="file" id="input-video" accept="video/*" capture="environment" style="display:none">
-        </div>
 
-        <!-- Android / Desktop: MediaRecorder -->
-        <div id="android-buttons" class="capture-grid hidden">
-          <button class="capture-card" id="btn-photo">
-            <div class="capture-icon">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-                <circle cx="12" cy="13" r="4"/>
-              </svg>
-            </div>
-            <div class="capture-text">
-              <div class="capture-label">Take Photo</div>
-              <div class="capture-sublabel">Uses browser camera</div>
-            </div>
-          </button>
-
-          <button class="capture-card" id="btn-video">
-            <div class="capture-icon">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                <polygon points="23 7 16 12 23 17 23 7"/>
-                <rect x="1" y="5" width="15" height="14" rx="2"/>
-              </svg>
-            </div>
-            <div class="capture-text">
-              <div class="capture-label">Record Video</div>
-              <div class="capture-sublabel">Uses browser camera</div>
-            </div>
-          </button>
         </div>
 
         <div class="live-note">
@@ -124,8 +107,6 @@
 
       <!-- ── RESULT ──────────────────────────────────── -->
       <div id="screen-result" class="hidden">
-
-        <!-- Green authentic-style verdict card -->
         <div class="verdict authentic">
           <div class="verdict-icon">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -137,8 +118,6 @@
             <p>Cryptographic proof embedded in your file</p>
           </div>
         </div>
-
-        <!-- Verify link card matching manifest-details style -->
         <div class="manifest-details">
           <h3>Verification Link</h3>
           <div class="detail-item" style="margin-bottom:14px">
@@ -154,7 +133,6 @@
           </button>
           <p class="share-note">Paste this link in your caption so viewers can verify this is real.</p>
         </div>
-
         <button class="verify-another" id="btn-again">Capture Another</button>
       </div>
 
@@ -182,8 +160,8 @@
 
   </div>
 
-  <!-- ── CAMERA (Android / Desktop, full-screen overlay) ── -->
-  <div id="screen-camera" class="hidden cam-overlay">
+  <!-- Camera overlay for Android/Desktop MediaRecorder -->
+  <div id="screen-camera" class="cam-overlay hidden">
     <video id="camera-feed" autoplay muted playsinline></video>
     <div class="camera-controls">
       <button class="ctrl-btn" id="btn-cancel">
@@ -193,7 +171,7 @@
       </button>
       <div class="shutter-wrap">
         <button class="shutter" id="btn-shutter"></button>
-        <div class="shutter-label" id="shutter-label">Photo</div>
+        <div class="shutter-label" id="shutter-label">Video</div>
       </div>
       <button class="ctrl-btn" id="btn-flip">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -202,7 +180,7 @@
         </svg>
       </button>
     </div>
-    <div id="rec-bar" class="hidden">
+    <div id="rec-bar" class="rec-bar-hidden">
       <div class="rec-pill">
         <div class="rec-dot"></div>
         <span id="rec-time">00:00</span>

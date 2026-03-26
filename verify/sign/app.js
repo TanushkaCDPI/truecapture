@@ -1,78 +1,64 @@
 const BACKEND_URL = 'https://api.truecapture.global';
 
+// iOS detection — used only to decide Record Video behaviour at click time
 const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 
-// Show platform-appropriate capture buttons
-if (isIOS) {
-  document.getElementById('ios-buttons').classList.remove('hidden');
-} else {
-  document.getElementById('android-buttons').classList.remove('hidden');
-}
+// ── Take Photo: label → hidden file input (always) ───────────────
+// No JS needed — the <label for="input-photo"> in HTML handles it.
 
-// ── iOS: native camera via file inputs ───────────────────────────
 document.getElementById('input-photo').addEventListener('change', async (e) => {
   const file = e.target.files[0];
-  if (file) await processFile(file, { source: 'iphone-camera', capturedAt: new Date().toISOString() });
+  if (file) await processFile(file, { source: 'camera-photo', capturedAt: new Date().toISOString() });
+  e.target.value = ''; // reset so same file can re-trigger
+});
+
+// ── Record Video button ───────────────────────────────────────────
+document.getElementById('btn-record-video').addEventListener('click', () => {
+  if (isIOS) {
+    // iPhone: trigger hidden file input with capture="environment"
+    document.getElementById('input-video').click();
+  } else {
+    // Android / Desktop: use MediaRecorder directly in browser
+    openCamera();
+  }
 });
 
 document.getElementById('input-video').addEventListener('change', async (e) => {
   const file = e.target.files[0];
-  if (file) await processFile(file, { source: 'iphone-camera', capturedAt: new Date().toISOString() });
+  if (file) await processFile(file, { source: 'camera-video', capturedAt: new Date().toISOString() });
+  e.target.value = '';
 });
 
-// ── Android / Desktop: MediaRecorder ─────────────────────────────
+// ── MediaRecorder camera (Android / Desktop) ──────────────────────
 let stream = null;
 let recorder = null;
 let chunks = [];
 let timerInterval = null;
 let timerSeconds = 0;
 let facingMode = 'environment';
-let captureMode = 'photo';
 
-document.getElementById('btn-photo').addEventListener('click', () => openCamera('photo'));
-document.getElementById('btn-video').addEventListener('click', () => openCamera('video'));
-
-async function openCamera(mode) {
-  captureMode = mode;
+async function openCamera() {
   try {
     stream = await navigator.mediaDevices.getUserMedia({
       video: { facingMode, width: { ideal: 1920 }, height: { ideal: 1080 } },
-      audio: mode === 'video',
+      audio: true,
     });
     const feed = document.getElementById('camera-feed');
     feed.srcObject = stream;
     await feed.play();
     document.getElementById('btn-shutter').className = 'shutter';
-    document.getElementById('shutter-label').textContent = mode === 'video' ? 'Video' : 'Photo';
     showScreen('screen-camera');
   } catch (err) {
     showError('Camera access denied: ' + err.message);
   }
 }
 
-document.getElementById('btn-shutter').addEventListener('click', async () => {
-  if (captureMode === 'photo') {
-    await capturePhoto();
-  } else if (!document.getElementById('btn-shutter').classList.contains('recording')) {
+// Shutter starts recording
+document.getElementById('btn-shutter').addEventListener('click', () => {
+  if (!document.getElementById('btn-shutter').classList.contains('recording')) {
     startRecording();
   }
 });
-
-async function capturePhoto() {
-  const feed = document.getElementById('camera-feed');
-  const canvas = document.createElement('canvas');
-  canvas.width = feed.videoWidth;
-  canvas.height = feed.videoHeight;
-  canvas.getContext('2d').drawImage(feed, 0, 0);
-  stopStream();
-  showScreen('screen-home');
-  canvas.toBlob(async (blob) => {
-    await processFile(
-      new File([blob], 'photo.jpg', { type: 'image/jpeg' }),
-      { source: 'android-camera', capturedAt: new Date().toISOString() }
-    );
-  }, 'image/jpeg', 0.92);
-}
 
 function startRecording() {
   chunks = [];
@@ -83,7 +69,7 @@ function startRecording() {
   recorder.start(1000);
   document.getElementById('btn-shutter').classList.add('recording');
   document.getElementById('shutter-label').textContent = 'Recording';
-  document.getElementById('rec-bar').classList.remove('hidden');
+  document.getElementById('rec-bar').classList.remove('rec-bar-hidden');
   timerInterval = setInterval(() => {
     timerSeconds++;
     const m = String(Math.floor(timerSeconds / 60)).padStart(2, '0');
@@ -94,14 +80,14 @@ function startRecording() {
 
 document.getElementById('btn-stop').addEventListener('click', () => {
   clearInterval(timerInterval);
-  document.getElementById('rec-bar').classList.add('hidden');
+  document.getElementById('rec-bar').classList.add('rec-bar-hidden');
   const mimeType = recorder.mimeType || 'video/webm';
   recorder.onstop = async () => {
     const blob = new Blob(chunks, { type: mimeType });
     const ext = mimeType.includes('mp4') ? 'mp4' : 'webm';
     await processFile(
       new File([blob], `video.${ext}`, { type: mimeType }),
-      { source: 'android-camera', capturedAt: new Date().toISOString() }
+      { source: 'camera-video', capturedAt: new Date().toISOString() }
     );
   };
   recorder.stop();
@@ -109,15 +95,18 @@ document.getElementById('btn-stop').addEventListener('click', () => {
   showScreen('screen-home');
 });
 
-document.getElementById('btn-cancel').addEventListener('click', () => { stopStream(); showScreen('screen-home'); });
+document.getElementById('btn-cancel').addEventListener('click', () => {
+  stopStream();
+  showScreen('screen-home');
+});
 
 document.getElementById('btn-flip').addEventListener('click', async () => {
   facingMode = facingMode === 'environment' ? 'user' : 'environment';
   stopStream();
-  await openCamera(captureMode);
+  await openCamera();
 });
 
-// ── Sign & upload ─────────────────────────────────────────────────
+// ── Sign ──────────────────────────────────────────────────────────
 async function processFile(file, metadata) {
   showScreen('screen-processing');
   setStep('upload');
@@ -189,17 +178,13 @@ document.getElementById('btn-retry').addEventListener('click', () => showScreen(
 
 // ── Helpers ───────────────────────────────────────────────────────
 function showScreen(id) {
-  // Hide all content screens
-  ['screen-home', 'screen-processing', 'screen-result', 'screen-error'].forEach(s => {
+  const screens = ['screen-home', 'screen-processing', 'screen-result', 'screen-error'];
+  screens.forEach(s => {
     document.getElementById(s).classList.toggle('hidden', s !== id);
   });
-  // Camera is a fixed overlay, handle separately
+  // Camera overlay is outside #app, handle separately
   const cam = document.getElementById('screen-camera');
-  if (id === 'screen-camera') {
-    cam.classList.remove('hidden');
-  } else {
-    cam.classList.add('hidden');
-  }
+  cam.classList.toggle('hidden', id !== 'screen-camera');
 }
 
 function showError(msg) {
