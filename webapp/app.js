@@ -2,7 +2,7 @@ const BACKEND_URL = 'https://api.truecapture.global';
 
 const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 
-// Show platform-appropriate buttons
+// Show platform-appropriate capture buttons
 if (isIOS) {
   document.getElementById('ios-buttons').classList.remove('hidden');
 } else {
@@ -44,7 +44,7 @@ async function openCamera(mode) {
     await feed.play();
     document.getElementById('btn-shutter').className = 'shutter';
     document.getElementById('shutter-label').textContent = mode === 'video' ? 'Video' : 'Photo';
-    show('screen-camera');
+    showScreen('screen-camera');
   } catch (err) {
     showError('Camera access denied: ' + err.message);
   }
@@ -65,7 +65,7 @@ async function capturePhoto() {
   canvas.height = feed.videoHeight;
   canvas.getContext('2d').drawImage(feed, 0, 0);
   stopStream();
-  show('screen-home');
+  showScreen('screen-home');
   canvas.toBlob(async (blob) => {
     await processFile(
       new File([blob], 'photo.jpg', { type: 'image/jpeg' }),
@@ -106,10 +106,10 @@ document.getElementById('btn-stop').addEventListener('click', () => {
   };
   recorder.stop();
   stopStream();
-  show('screen-home');
+  showScreen('screen-home');
 });
 
-document.getElementById('btn-cancel').addEventListener('click', () => { stopStream(); show('screen-home'); });
+document.getElementById('btn-cancel').addEventListener('click', () => { stopStream(); showScreen('screen-home'); });
 
 document.getElementById('btn-flip').addEventListener('click', async () => {
   facingMode = facingMode === 'environment' ? 'user' : 'environment';
@@ -117,9 +117,9 @@ document.getElementById('btn-flip').addEventListener('click', async () => {
   await openCamera(captureMode);
 });
 
-// ── Sign ──────────────────────────────────────────────────────────
+// ── Sign & upload ─────────────────────────────────────────────────
 async function processFile(file, metadata) {
-  show('screen-processing');
+  showScreen('screen-processing');
   setStep('upload');
 
   try {
@@ -153,7 +153,7 @@ async function processFile(file, metadata) {
     setTimeout(() => URL.revokeObjectURL(a.href), 5000);
 
     document.getElementById('verify-url').textContent = verifyUrl;
-    show('screen-result');
+    showScreen('screen-result');
     try { await navigator.clipboard.writeText(verifyUrl); } catch {}
 
   } catch (err) {
@@ -179,23 +179,32 @@ document.getElementById('btn-copy').addEventListener('click', async () => {
     const btn = document.getElementById('btn-copy');
     btn.textContent = '✓ Copied!';
     setTimeout(() => {
-      btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy Link`;
+      btn.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy Link`;
     }, 2000);
   } catch {}
 });
 
-document.getElementById('btn-again').addEventListener('click', () => show('screen-home'));
-document.getElementById('btn-retry').addEventListener('click', () => show('screen-home'));
+document.getElementById('btn-again').addEventListener('click', () => showScreen('screen-home'));
+document.getElementById('btn-retry').addEventListener('click', () => showScreen('screen-home'));
 
 // ── Helpers ───────────────────────────────────────────────────────
-function show(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
+function showScreen(id) {
+  // Hide all content screens
+  ['screen-home', 'screen-processing', 'screen-result', 'screen-error'].forEach(s => {
+    document.getElementById(s).classList.toggle('hidden', s !== id);
+  });
+  // Camera is a fixed overlay, handle separately
+  const cam = document.getElementById('screen-camera');
+  if (id === 'screen-camera') {
+    cam.classList.remove('hidden');
+  } else {
+    cam.classList.add('hidden');
+  }
 }
 
 function showError(msg) {
   document.getElementById('error-msg').textContent = msg;
-  show('screen-error');
+  showScreen('screen-error');
 }
 
 function stopStream() {
