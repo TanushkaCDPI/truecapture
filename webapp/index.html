@@ -44,7 +44,24 @@
           On iPhone, capture="environment" opens the native camera.
           On desktop/Android it opens a file/camera picker.
         -->
-        <div class="capture-grid">
+        <!-- Desktop message (shown instead of capture buttons on non-mobile) -->
+        <div id="desktop-msg" class="hidden">
+          <div class="manifest-details desktop-card">
+            <div class="desktop-icon">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <rect x="2" y="3" width="20" height="14" rx="2"/>
+                <line x1="8" y1="21" x2="16" y2="21"/>
+                <line x1="12" y1="17" x2="12" y2="21"/>
+              </svg>
+            </div>
+            <p class="desktop-text">You're on desktop. Use the <strong>TrueCapture Chrome Extension</strong> for all capture options including screen recording and Zoom/Meet.</p>
+            <a class="select-btn full-btn" href="https://chrome.google.com/webstore" target="_blank" rel="noopener">
+              Install Chrome Extension
+            </a>
+          </div>
+        </div>
+
+        <div id="capture-grid" class="capture-grid">
 
           <label class="capture-card" for="input-photo">
             <div class="capture-icon">
@@ -53,18 +70,10 @@
                 <circle cx="12" cy="13" r="4"/>
               </svg>
             </div>
-            <div class="capture-text">
-              <div class="capture-label">Take Photo</div>
-              <div class="capture-sublabel">Opens camera</div>
-            </div>
+            <div class="capture-label">Take Photo</div>
           </label>
           <input type="file" id="input-photo" accept="image/*" capture="environment" style="display:none">
 
-          <!--
-            Record Video: a <button> — JS decides at click time:
-            iOS  → programmatically clicks input-video (native camera)
-            else → opens MediaRecorder in browser
-          -->
           <button class="capture-card" id="btn-record-video">
             <div class="capture-icon">
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -72,12 +81,10 @@
                 <rect x="1" y="5" width="15" height="14" rx="2"/>
               </svg>
             </div>
-            <div class="capture-text">
-              <div class="capture-label">Record Video</div>
-              <div class="capture-sublabel">Opens camera</div>
-            </div>
+            <div class="capture-label">Record Video</div>
           </button>
-          <input type="file" id="input-video" accept="video/*" capture="environment" style="display:none">
+          <!-- bare capture attribute (no value) is most reliable on iOS Safari for video -->
+          <input type="file" id="input-video" accept="video/*" capture style="display:none">
 
         </div>
 

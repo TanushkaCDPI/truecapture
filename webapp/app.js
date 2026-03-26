@@ -1,7 +1,14 @@
 const BACKEND_URL = 'https://api.truecapture.global';
 
-// iOS detection — used only to decide Record Video behaviour at click time
 const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+const isAndroid = /Android/i.test(navigator.userAgent);
+const isMobile = isIOS || isAndroid;
+
+// On desktop: hide capture buttons, show extension message
+if (!isMobile) {
+  document.getElementById('capture-grid').classList.add('hidden');
+  document.getElementById('desktop-msg').classList.remove('hidden');
+}
 
 // ── Take Photo: label → hidden file input (always) ───────────────
 // No JS needed — the <label for="input-photo"> in HTML handles it.
