@@ -1,4 +1,4 @@
-<!-- v20260326-1 -->
+<!-- v20260326-2 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,200 +11,800 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>TrueCapture — Sign</title>
-  <link rel="stylesheet" href="styles.css?v=20260326-1">
+<style>
+/* ── Reset & tokens ─────────────────────────────────────────────── */
+:root {
+  --bg:      #0f0f13;
+  --surface: #1a1a27;
+  --border:  #2d2d3e;
+  --accent:  #4f46e5;
+  --text:    #e2e8f0;
+  --muted:   #64748b;
+  --success: #22c55e;
+  --error:   #ef4444;
+  --radius:  16px;
+}
+*, *::before, *::after {
+  margin: 0; padding: 0; box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+html, body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.5;
+}
+
+/* ── Layout ─────────────────────────────────────────────────────── */
+#app {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* ── Header (exact match to verify page) ────────────────────────── */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 0;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 40px;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: var(--text);
+  font-size: 18px;
+  font-weight: 700;
+}
+.c2pa-badge {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 4px 10px;
+  background: rgba(99,102,241,0.1);
+  border: 1px solid #6366f1;
+  border-radius: 999px;
+  color: #6366f1;
+}
+
+/* ── Section intro ──────────────────────────────────────────────── */
+.capture-intro { margin-bottom: 28px; }
+.capture-intro h2 { font-size: 22px; font-weight: 600; margin-bottom: 6px; }
+.capture-intro p  { font-size: 14px; color: var(--muted); max-width: 480px; }
+
+/* ── Capture buttons ─────────────────────────────────────────────── */
+.capture-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.capture-btn {
+  /* reset */
+  -webkit-appearance: none;
+  appearance: none;
+  border: none;
+  outline: none;
+  text-decoration: none;
+  /* layout */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  padding: 20px 16px;
+  /* style */
+  background: var(--accent);
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 700;
+  font-family: inherit;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.capture-btn:hover  { background: #4338ca; }
+.capture-btn:active { background: #4338ca; transform: scale(0.98); }
+
+.btn-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── Live note ───────────────────────────────────────────────────── */
+.live-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--muted);
+  padding: 12px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  margin-bottom: 40px;
+}
+
+/* ── Desktop card ────────────────────────────────────────────────── */
+.desktop-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.desktop-icon {
+  width: 56px; height: 56px;
+  border-radius: 14px;
+  background: rgba(99,102,241,0.1);
+  border: 1px solid rgba(99,102,241,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6366f1;
+}
+.desktop-text { font-size: 15px; color: var(--muted); line-height: 1.6; }
+.desktop-text strong { color: var(--text); font-weight: 600; }
+.install-btn {
+  -webkit-appearance: none;
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 24px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: inherit;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.15s;
+}
+.install-btn:hover { background: #4338ca; }
+
+/* ── Processing ─────────────────────────────────────────────────── */
+#screen-processing {
+  display: flex;
+  justify-content: center;
+  padding: 80px 0;
+}
+.processing-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  text-align: center;
+}
+.spinner {
+  width: 56px; height: 56px;
+  border: 4px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+#proc-msg { color: var(--muted); font-size: 15px; }
+.steps-row { display: flex; align-items: center; gap: 8px; }
+.step-pill {
+  font-size: 12px; font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  transition: all 0.3s;
+}
+.step-pill.active { background: rgba(99,102,241,0.12); border-color: #6366f1; color: #6366f1; }
+.step-pill.done   { background: rgba(34,197,94,0.1);  border-color: var(--success); color: var(--success); }
+.step-sep { color: var(--border); font-size: 14px; }
+
+/* ── Verdict card (same as verify page) ─────────────────────────── */
+.verdict {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 24px;
+  border-radius: var(--radius);
+  margin-bottom: 24px;
+  border: 2px solid;
+}
+.verdict.authentic { background: rgba(34,197,94,0.08);  border-color: var(--success); }
+.verdict.tampered  { background: rgba(239,68,68,0.08);  border-color: var(--error); }
+.verdict-icon {
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.verdict.authentic .verdict-icon { background: rgba(34,197,94,0.15);  color: var(--success); }
+.verdict.tampered  .verdict-icon { background: rgba(239,68,68,0.15);  color: var(--error); }
+.verdict-text h2 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+.verdict.authentic .verdict-text h2 { color: var(--success); }
+.verdict.tampered  .verdict-text h2 { color: var(--error); }
+.verdict-text p { color: var(--muted); font-size: 14px; }
+
+/* ── Manifest-details card (same as verify page) ─────────────────── */
+.manifest-details {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 16px;
+}
+.manifest-details h3 {
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  margin-bottom: 16px;
+  font-weight: 600;
+}
+.detail-item {
+  background: #13131f;
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+}
+.detail-item .key {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+.detail-item .value {
+  font-size: 13px;
+  word-break: break-all;
+  font-weight: 500;
+  color: #6366f1;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  line-height: 1.6;
+}
+
+/* ── Copy + secondary buttons ────────────────────────────────────── */
+.copy-btn {
+  -webkit-appearance: none;
+  appearance: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 14px;
+  background: var(--accent);
+  border: none;
+  border-radius: 10px;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.copy-btn:hover  { background: #4338ca; }
+.copy-btn:active { background: #4338ca; }
+.share-note { font-size: 13px; color: var(--muted); line-height: 1.6; margin-top: 12px; }
+
+.secondary-btn {
+  -webkit-appearance: none;
+  appearance: none;
+  display: block;
+  width: 100%;
+  padding: 14px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  margin-top: 8px;
+  margin-bottom: 40px;
+  transition: all 0.15s;
+}
+.secondary-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ── Footer ──────────────────────────────────────────────────────── */
+footer {
+  border-top: 1px solid var(--border);
+  padding: 24px 0;
+  margin-top: 40px;
+}
+footer p { font-size: 13px; color: var(--muted); line-height: 1.7; text-align: center; }
+footer a { color: #6366f1; text-decoration: none; }
+
+/* ── Utility ─────────────────────────────────────────────────────── */
+.hidden { display: none !important; }
+
+/* ── Camera overlay (Android/Desktop MediaRecorder) ──────────────── */
+.cam-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: #000;
+  display: flex;
+  flex-direction: column;
+}
+.cam-overlay.hidden { display: none !important; }
+#camera-feed { flex: 1; width: 100%; object-fit: cover; }
+.camera-controls {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  padding: 32px 40px;
+  padding-bottom: max(32px, env(safe-area-inset-bottom));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(transparent, rgba(0,0,0,0.72));
+}
+.ctrl-btn {
+  width: 46px; height: 46px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+}
+.ctrl-btn:active { opacity: 0.7; }
+.shutter-wrap { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.shutter {
+  width: 72px; height: 72px;
+  border-radius: 50%;
+  border: 3px solid rgba(255,255,255,0.9);
+  background: rgba(255,255,255,0.2);
+  cursor: pointer;
+  position: relative;
+  transition: transform 0.1s;
+}
+.shutter::after {
+  content: '';
+  position: absolute; inset: 5px;
+  border-radius: 50%;
+  background: #fff;
+  transition: all 0.15s;
+}
+.shutter.recording::after { inset: 20px; border-radius: 4px; background: var(--error); }
+.shutter:active { transform: scale(0.92); }
+.shutter-label {
+  color: rgba(255,255,255,0.85);
+  font-size: 12px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.08em;
+}
+#rec-bar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 200;
+  padding: 12px 18px;
+  padding-top: max(12px, env(safe-area-inset-top));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+#rec-bar.rec-hidden { display: none; }
+.rec-pill {
+  display: flex; align-items: center; gap: 8px;
+  padding: 5px 12px;
+  background: rgba(239,68,68,0.15);
+  border: 1px solid var(--error);
+  border-radius: 999px;
+}
+.rec-dot {
+  width: 8px; height: 8px;
+  background: var(--error); border-radius: 50%;
+  animation: blink 1s ease infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+#rec-time { font-size: 13px; font-family: monospace; font-weight: 700; color: var(--error); }
+.stop-btn {
+  display: flex; align-items: center; gap: 7px;
+  padding: 7px 16px;
+  background: var(--error); border: none; border-radius: 8px;
+  color: #fff; font-size: 13px; font-weight: 700; font-family: inherit;
+  cursor: pointer;
+}
+.stop-btn:active { opacity: 0.85; }
+</style>
 </head>
 <body>
-  <div id="app">
+<div id="app">
 
-    <!-- Exact same header as verify page -->
-    <header>
-      <a href="https://www.truecapture.global" class="brand">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-          <circle cx="12" cy="12" r="10" stroke="#6366f1" stroke-width="2"/>
-          <path d="M12 2C12 2 8 6 8 12C8 18 12 22 12 22" stroke="#6366f1" stroke-width="1.5"/>
-          <path d="M12 2C12 2 16 6 16 12C16 18 12 22 12 22" stroke="#6366f1" stroke-width="1.5"/>
-          <path d="M2 12H22" stroke="#6366f1" stroke-width="1.5"/>
-          <circle cx="12" cy="12" r="2" fill="#6366f1"/>
-        </svg>
-        <span>TrueCapture</span>
-      </a>
-      <div class="header-right">
-        <span class="c2pa-badge">C2PA Verified</span>
+  <!-- Header — identical to verify page -->
+  <header>
+    <a href="https://www.truecapture.global" class="brand">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="10" stroke="#6366f1" stroke-width="2"/>
+        <path d="M12 2C12 2 8 6 8 12C8 18 12 22 12 22" stroke="#6366f1" stroke-width="1.5"/>
+        <path d="M12 2C12 2 16 6 16 12C16 18 12 22 12 22" stroke="#6366f1" stroke-width="1.5"/>
+        <path d="M2 12H22" stroke="#6366f1" stroke-width="1.5"/>
+        <circle cx="12" cy="12" r="2" fill="#6366f1"/>
+      </svg>
+      <span>TrueCapture</span>
+    </a>
+    <span class="c2pa-badge">C2PA Verified</span>
+  </header>
+
+  <main>
+
+    <!-- ── HOME ──────────────────────────────────────── -->
+    <div id="screen-home">
+
+      <div class="capture-intro">
+        <h2>Capture &amp; Sign</h2>
+        <p>Your media is cryptographically signed at the moment of capture. If anything changes, the signature breaks.</p>
       </div>
-    </header>
 
-    <main>
-
-      <!-- ── HOME ─────────────────────────────────────── -->
-      <div id="screen-home">
-
-        <div class="capture-intro">
-          <h2>Capture &amp; Sign</h2>
-          <p>Your media is cryptographically signed at the moment of capture. If anything changes, the signature breaks.</p>
-        </div>
-
-        <!--
-          Take Photo: always a <label> — clicking it triggers the hidden file input.
-          On iPhone, capture="environment" opens the native camera.
-          On desktop/Android it opens a file/camera picker.
-        -->
-        <!-- Desktop message (shown instead of capture buttons on non-mobile) -->
-        <div id="desktop-msg" class="hidden">
-          <div class="manifest-details desktop-card">
-            <div class="desktop-icon">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                <rect x="2" y="3" width="20" height="14" rx="2"/>
-                <line x1="8" y1="21" x2="16" y2="21"/>
-                <line x1="12" y1="17" x2="12" y2="21"/>
-              </svg>
-            </div>
-            <p class="desktop-text">You're on desktop. Use the <strong>TrueCapture Chrome Extension</strong> for all capture options including screen recording and Zoom/Meet.</p>
-            <a class="select-btn full-btn" href="https://chrome.google.com/webstore" target="_blank" rel="noopener">
-              Install Chrome Extension
-            </a>
+      <!-- Desktop: extension message -->
+      <div id="desktop-msg" class="hidden">
+        <div class="desktop-card">
+          <div class="desktop-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <rect x="2" y="3" width="20" height="14" rx="2"/>
+              <line x1="8" y1="21" x2="16" y2="21"/>
+              <line x1="12" y1="17" x2="12" y2="21"/>
+            </svg>
           </div>
+          <p class="desktop-text">You're on desktop. Use the <strong>TrueCapture Chrome Extension</strong> for all capture options including screen recording and Zoom/Meet.</p>
+          <a class="install-btn" href="https://chrome.google.com/webstore" target="_blank" rel="noopener">
+            Install Chrome Extension
+          </a>
         </div>
+      </div>
 
-        <div id="capture-grid" class="capture-grid">
+      <!-- Mobile: capture buttons -->
+      <div id="capture-grid" class="capture-grid">
 
-          <label class="capture-card" for="input-photo">
-            <div class="capture-icon">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-                <circle cx="12" cy="13" r="4"/>
-              </svg>
-            </div>
-            <div class="capture-label">Take Photo</div>
-          </label>
-          <input type="file" id="input-photo" accept="image/*" capture="environment" style="display:none">
+        <!-- Take Photo: label triggers hidden file input — no JS needed -->
+        <label class="capture-btn" for="input-photo">
+          <div class="btn-icon">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+              <circle cx="12" cy="13" r="4"/>
+            </svg>
+          </div>
+          Take Photo
+        </label>
+        <input type="file" id="input-photo" accept="image/*" capture="environment" style="display:none">
 
-          <button class="capture-card" id="btn-record-video">
-            <div class="capture-icon">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                <polygon points="23 7 16 12 23 17 23 7"/>
-                <rect x="1" y="5" width="15" height="14" rx="2"/>
-              </svg>
-            </div>
-            <div class="capture-label">Record Video</div>
-          </button>
-          <!-- bare capture attribute (no value) is most reliable on iOS Safari for video -->
-          <input type="file" id="input-video" accept="video/*" capture style="display:none">
+        <!-- Record Video: button, JS picks iOS file input vs MediaRecorder -->
+        <button class="capture-btn" id="btn-record-video">
+          <div class="btn-icon">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <polygon points="23 7 16 12 23 17 23 7"/>
+              <rect x="1" y="5" width="15" height="14" rx="2"/>
+            </svg>
+          </div>
+          Record Video
+        </button>
+        <!-- bare capture attribute is most reliable on iOS Safari for video -->
+        <input type="file" id="input-video" accept="video/*" capture style="display:none">
 
+      </div>
+
+      <div class="live-note">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0">
+          <rect x="3" y="11" width="18" height="11" rx="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+        Live capture only — proves this was not uploaded from a file
+      </div>
+
+    </div><!-- /screen-home -->
+
+    <!-- ── PROCESSING ─────────────────────────────── -->
+    <div id="screen-processing" class="hidden">
+      <div class="processing-inner">
+        <div class="spinner"></div>
+        <p id="proc-msg">Signing with C2PA...</p>
+        <div class="steps-row">
+          <span class="step-pill" id="step-upload">Uploading</span>
+          <span class="step-sep">›</span>
+          <span class="step-pill" id="step-sign">Signing</span>
+          <span class="step-sep">›</span>
+          <span class="step-pill" id="step-save">Saving</span>
         </div>
+      </div>
+    </div>
 
-        <div class="live-note">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0">
-            <rect x="3" y="11" width="18" height="11" rx="2"/>
-            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+    <!-- ── RESULT ──────────────────────────────────── -->
+    <div id="screen-result" class="hidden">
+      <div class="verdict authentic">
+        <div class="verdict-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="20 6 9 17 4 12"/>
           </svg>
-          Live capture only — proves this was not uploaded from a file
+        </div>
+        <div class="verdict-text">
+          <h2>Signed &amp; Saved</h2>
+          <p>Cryptographic proof embedded in your file</p>
         </div>
       </div>
-
-      <!-- ── PROCESSING ─────────────────────────────── -->
-      <div id="screen-processing" class="hidden">
-        <div class="verifying-content">
-          <div class="verify-spinner"></div>
-          <p id="proc-msg" style="color:var(--muted);font-size:15px;">Signing with C2PA...</p>
-          <div class="steps-row">
-            <span class="step-pill" id="step-upload">Uploading</span>
-            <span class="step-sep">›</span>
-            <span class="step-pill" id="step-sign">Signing</span>
-            <span class="step-sep">›</span>
-            <span class="step-pill" id="step-save">Saving</span>
-          </div>
+      <div class="manifest-details">
+        <h3>Verification Link</h3>
+        <div class="detail-item">
+          <div class="key">Share this link</div>
+          <div class="value" id="verify-url"></div>
         </div>
+        <button class="copy-btn" id="btn-copy">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="9" y="9" width="13" height="13" rx="2"/>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+          </svg>
+          Copy Link
+        </button>
+        <p class="share-note">Paste this link in your caption so viewers can verify this is real.</p>
       </div>
-
-      <!-- ── RESULT ──────────────────────────────────── -->
-      <div id="screen-result" class="hidden">
-        <div class="verdict authentic">
-          <div class="verdict-icon">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <polyline points="20 6 9 17 4 12"/>
-            </svg>
-          </div>
-          <div class="verdict-text">
-            <h2>Signed &amp; Saved</h2>
-            <p>Cryptographic proof embedded in your file</p>
-          </div>
-        </div>
-        <div class="manifest-details">
-          <h3>Verification Link</h3>
-          <div class="detail-item" style="margin-bottom:14px">
-            <div class="key">Share this link</div>
-            <div class="value accent-value" id="verify-url"></div>
-          </div>
-          <button class="select-btn full-btn" id="btn-copy">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0">
-              <rect x="9" y="9" width="13" height="13" rx="2"/>
-              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-            </svg>
-            Copy Link
-          </button>
-          <p class="share-note">Paste this link in your caption so viewers can verify this is real.</p>
-        </div>
-        <button class="verify-another" id="btn-again">Capture Another</button>
-      </div>
-
-      <!-- ── ERROR ───────────────────────────────────── -->
-      <div id="screen-error" class="hidden">
-        <div class="verdict tampered">
-          <div class="verdict-icon">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-            </svg>
-          </div>
-          <div class="verdict-text">
-            <h2>Signing Failed</h2>
-            <p id="error-msg"></p>
-          </div>
-        </div>
-        <button class="verify-another" id="btn-retry">Try Again</button>
-      </div>
-
-    </main>
-
-    <footer>
-      <p>TrueCapture uses the <a href="https://c2pa.org" target="_blank" rel="noopener">C2PA</a> standard for content provenance. Media is signed at the moment of capture and never stored on our servers.</p>
-    </footer>
-
-  </div>
-
-  <!-- Camera overlay for Android/Desktop MediaRecorder -->
-  <div id="screen-camera" class="cam-overlay hidden">
-    <video id="camera-feed" autoplay muted playsinline></video>
-    <div class="camera-controls">
-      <button class="ctrl-btn" id="btn-cancel">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-        </svg>
-      </button>
-      <div class="shutter-wrap">
-        <button class="shutter" id="btn-shutter"></button>
-        <div class="shutter-label" id="shutter-label">Video</div>
-      </div>
-      <button class="ctrl-btn" id="btn-flip">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="1 4 1 10 7 10"/><polyline points="23 20 23 14 17 14"/>
-          <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/>
-        </svg>
-      </button>
+      <button class="secondary-btn" id="btn-again">Capture Another</button>
     </div>
-    <div id="rec-bar" class="rec-bar-hidden">
-      <div class="rec-pill">
-        <div class="rec-dot"></div>
-        <span id="rec-time">00:00</span>
-      </div>
-      <button class="stop-btn" id="btn-stop">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-          <rect x="3" y="3" width="18" height="18" rx="2"/>
-        </svg>
-        Stop &amp; Sign
-      </button>
-    </div>
-  </div>
 
-  <script src="app.js?v=20260326-1"></script>
+    <!-- ── ERROR ───────────────────────────────────── -->
+    <div id="screen-error" class="hidden">
+      <div class="verdict tampered">
+        <div class="verdict-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </div>
+        <div class="verdict-text">
+          <h2>Signing Failed</h2>
+          <p id="error-msg"></p>
+        </div>
+      </div>
+      <button class="secondary-btn" id="btn-retry">Try Again</button>
+    </div>
+
+  </main>
+
+  <footer>
+    <p>TrueCapture uses the <a href="https://c2pa.org" target="_blank" rel="noopener">C2PA</a> standard for content provenance. Media is signed at the moment of capture and never stored on our servers.</p>
+  </footer>
+
+</div><!-- /app -->
+
+<!-- Camera overlay for Android/Desktop MediaRecorder -->
+<div id="screen-camera" class="cam-overlay hidden">
+  <video id="camera-feed" autoplay muted playsinline></video>
+  <div class="camera-controls">
+    <button class="ctrl-btn" id="btn-cancel">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+    <div class="shutter-wrap">
+      <button class="shutter" id="btn-shutter"></button>
+      <div class="shutter-label" id="shutter-label">Video</div>
+    </div>
+    <button class="ctrl-btn" id="btn-flip">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="1 4 1 10 7 10"/><polyline points="23 20 23 14 17 14"/>
+        <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/>
+      </svg>
+    </button>
+  </div>
+  <div id="rec-bar" class="rec-hidden">
+    <div class="rec-pill">
+      <div class="rec-dot"></div>
+      <span id="rec-time">00:00</span>
+    </div>
+    <button class="stop-btn" id="btn-stop">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+        <rect x="3" y="3" width="18" height="18" rx="2"/>
+      </svg>
+      Stop &amp; Sign
+    </button>
+  </div>
+</div>
+
+<script>
+const BACKEND_URL = 'https://api.truecapture.global';
+
+const isIOS     = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+const isAndroid = /Android/i.test(navigator.userAgent);
+const isMobile  = isIOS || isAndroid;
+
+// Show correct section on load
+if (!isMobile) {
+  document.getElementById('capture-grid').classList.add('hidden');
+  document.getElementById('desktop-msg').classList.remove('hidden');
+}
+
+// ── Take Photo ────────────────────────────────────────────────────
+// <label for="input-photo"> handles the click — no JS needed for that.
+document.getElementById('input-photo').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (file) await processFile(file, { source: 'camera-photo', capturedAt: new Date().toISOString() });
+  e.target.value = '';
+});
+
+// ── Record Video ──────────────────────────────────────────────────
+document.getElementById('btn-record-video').addEventListener('click', () => {
+  if (isIOS) {
+    document.getElementById('input-video').click();
+  } else {
+    openCamera();
+  }
+});
+
+document.getElementById('input-video').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (file) await processFile(file, { source: 'camera-video', capturedAt: new Date().toISOString() });
+  e.target.value = '';
+});
+
+// ── MediaRecorder (Android / Desktop) ────────────────────────────
+let stream = null, recorder = null, chunks = [], timerInterval = null, timerSecs = 0;
+let facingMode = 'environment';
+
+async function openCamera() {
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode, width: { ideal: 1920 }, height: { ideal: 1080 } },
+      audio: true,
+    });
+    const feed = document.getElementById('camera-feed');
+    feed.srcObject = stream;
+    await feed.play();
+    document.getElementById('btn-shutter').className = 'shutter';
+    showScreen('screen-camera');
+  } catch (err) {
+    showError('Camera access denied: ' + err.message);
+  }
+}
+
+document.getElementById('btn-shutter').addEventListener('click', () => {
+  if (!document.getElementById('btn-shutter').classList.contains('recording')) startRecording();
+});
+
+function startRecording() {
+  chunks = []; timerSecs = 0;
+  const mimeType = getSupportedMimeType();
+  recorder = new MediaRecorder(stream, { mimeType });
+  recorder.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data); };
+  recorder.start(1000);
+  document.getElementById('btn-shutter').classList.add('recording');
+  document.getElementById('shutter-label').textContent = 'Recording';
+  document.getElementById('rec-bar').classList.remove('rec-hidden');
+  timerInterval = setInterval(() => {
+    timerSecs++;
+    document.getElementById('rec-time').textContent =
+      String(Math.floor(timerSecs / 60)).padStart(2,'0') + ':' +
+      String(timerSecs % 60).padStart(2,'0');
+  }, 1000);
+}
+
+document.getElementById('btn-stop').addEventListener('click', () => {
+  clearInterval(timerInterval);
+  document.getElementById('rec-bar').classList.add('rec-hidden');
+  const mimeType = recorder.mimeType || 'video/webm';
+  recorder.onstop = async () => {
+    const blob = new Blob(chunks, { type: mimeType });
+    const ext  = mimeType.includes('mp4') ? 'mp4' : 'webm';
+    await processFile(new File([blob], `video.${ext}`, { type: mimeType }),
+      { source: 'camera-video', capturedAt: new Date().toISOString() });
+  };
+  recorder.stop();
+  stopStream();
+  showScreen('screen-home');
+});
+
+document.getElementById('btn-cancel').addEventListener('click', () => { stopStream(); showScreen('screen-home'); });
+document.getElementById('btn-flip').addEventListener('click', async () => {
+  facingMode = facingMode === 'environment' ? 'user' : 'environment';
+  stopStream(); await openCamera();
+});
+
+// ── Sign ──────────────────────────────────────────────────────────
+async function processFile(file, metadata) {
+  showScreen('screen-processing');
+  setStep('upload');
+  try {
+    const form = new FormData();
+    form.append('file', file, file.name);
+    form.append('metadata', JSON.stringify({ ...metadata, device: navigator.userAgent }));
+
+    setStep('sign');
+    document.getElementById('proc-msg').textContent = 'Signing with C2PA...';
+
+    const res = await fetch(`${BACKEND_URL}/sign`, { method: 'POST', body: form });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+      throw new Error(err.error || 'Signing failed');
+    }
+
+    const verifyHash = res.headers.get('X-Verify-Hash');
+    const verifyUrl  = res.headers.get('X-Verify-URL') ||
+      `https://www.truecapture.global/verify/${verifyHash}`;
+
+    setStep('save');
+    document.getElementById('proc-msg').textContent = 'Saving signed file...';
+
+    const blob = await res.blob();
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `signed_${file.name}`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+
+    document.getElementById('verify-url').textContent = verifyUrl;
+    showScreen('screen-result');
+    try { await navigator.clipboard.writeText(verifyUrl); } catch {}
+
+  } catch (err) { showError(err.message); }
+}
+
+function setStep(step) {
+  ['upload','sign','save'].forEach((s, i) => {
+    const idx = ['upload','sign','save'].indexOf(step);
+    const el  = document.getElementById(`step-${s}`);
+    if (i < idx)      { el.classList.remove('active'); el.classList.add('done'); }
+    else if (i === idx){ el.classList.add('active');   el.classList.remove('done'); }
+    else               { el.classList.remove('active','done'); }
+  });
+}
+
+document.getElementById('btn-copy').addEventListener('click', async () => {
+  const url = document.getElementById('verify-url').textContent;
+  try {
+    await navigator.clipboard.writeText(url);
+    const btn = document.getElementById('btn-copy');
+    btn.textContent = '✓ Copied!';
+    setTimeout(() => {
+      btn.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy Link`;
+    }, 2000);
+  } catch {}
+});
+
+document.getElementById('btn-again').addEventListener('click', () => showScreen('screen-home'));
+document.getElementById('btn-retry').addEventListener('click', () => showScreen('screen-home'));
+
+function showScreen(id) {
+  ['screen-home','screen-processing','screen-result','screen-error'].forEach(s =>
+    document.getElementById(s).classList.toggle('hidden', s !== id)
+  );
+  document.getElementById('screen-camera').classList.toggle('hidden', id !== 'screen-camera');
+}
+
+function showError(msg) {
+  document.getElementById('error-msg').textContent = msg;
+  showScreen('screen-error');
+}
+
+function stopStream() {
+  if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+}
+
+function getSupportedMimeType() {
+  for (const t of ['video/webm;codecs=vp9','video/webm;codecs=vp8','video/webm','video/mp4'])
+    if (MediaRecorder.isTypeSupported(t)) return t;
+  return 'video/webm';
+}
+</script>
 </body>
 </html>
