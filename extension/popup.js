@@ -47,39 +47,6 @@ document.getElementById('btn-photo').addEventListener('click', () => openCapture
 document.getElementById('btn-webcam').addEventListener('click', () => openCaptureTab('webcam'));
 document.getElementById('btn-screen').addEventListener('click', () => openCaptureTab('screen'));
 
-// ── Tab capture (Zoom/Meet) — stays in popup ─────────────────────
-// tabCapture.capture must be called from an extension page with the target tab active.
-// The popup qualifies and doesn't change the active tab, so this works correctly.
-document.getElementById('btn-tab').addEventListener('click', () => {
-  chrome.tabCapture.capture({ audio: true, video: true }, (stream) => {
-    if (chrome.runtime.lastError || !stream) {
-      showError('Tab capture failed: ' + (chrome.runtime.lastError?.message || 'no stream'));
-      return;
-    }
-    startTabRecording(stream);
-  });
-});
-
-function startTabRecording(stream) {
-  currentStream = stream;
-  recordedChunks = [];
-  recordingSeconds = 0;
-
-  showView('recording');
-  document.getElementById('rec-label').textContent = 'Recording Tab...';
-
-  const mimeType = getSupportedMimeType();
-  mediaRecorder = new MediaRecorder(stream, { mimeType });
-  mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunks.push(e.data); };
-  mediaRecorder.start(1000);
-
-  recordingTimer = setInterval(() => {
-    recordingSeconds++;
-    const m = String(Math.floor(recordingSeconds / 60)).padStart(2, '0');
-    const s = String(recordingSeconds % 60).padStart(2, '0');
-    document.getElementById('rec-timer').textContent = `${m}:${s}`;
-  }, 1000);
-}
 
 document.getElementById('btn-stop-rec').addEventListener('click', () => {
   clearInterval(recordingTimer);
