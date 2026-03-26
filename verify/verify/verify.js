@@ -27,15 +27,47 @@ dropZone.addEventListener('drop', (e) => {
   e.preventDefault();
   dropZone.classList.remove('drag-over');
   const file = e.dataTransfer.files[0];
-  if (file) verifyFile(file);
+  console.log('[TrueCapture] File dropped:', file?.name, file?.type, file?.size);
+  if (file) handleFileSelected(file);
 });
 
-dropZone.addEventListener('click', () => fileInput.click());
+// NOTE: do NOT add a click listener on the entire drop-zone that calls fileInput.click().
+// The <label for="file-input"> in the HTML handles opening the picker natively.
+// Adding a second programmatic .click() call double-triggers on iOS Safari and breaks selection.
 
-fileInput.addEventListener('change', (e) => {
-  const file = e.target.files[0];
-  if (file) verifyFile(file);
-});
+// Listen on both 'change' and 'input' for maximum iOS Safari compatibility
+function onFileInputChange(e) {
+  const file = e.target.files && e.target.files[0];
+  console.log('[TrueCapture] File input event:', e.type, file?.name, file?.type, file?.size);
+  if (file) handleFileSelected(file);
+}
+fileInput.addEventListener('change', onFileInputChange);
+fileInput.addEventListener('input', onFileInputChange);
+
+function handleFileSelected(file) {
+  console.log('[TrueCapture] handleFileSelected:', file.name, file.type, file.size);
+
+  // Show immediate feedback so user knows something was received
+  updateStatus(`File received: ${file.name}`);
+  showSection('verifying-section');
+
+  // Detect HEIC — iOS photo library exports HEIC which we cannot parse in-browser
+  const isHeic = file.type === 'image/heic' || file.type === 'image/heif' ||
+    file.name.toLowerCase().endsWith('.heic') || file.name.toLowerCase().endsWith('.heif');
+
+  if (isHeic) {
+    console.warn('[TrueCapture] HEIC file detected — not supported');
+    showResult('unknown', {
+      title: 'Unsupported Format',
+      description: 'HEIC photos cannot be verified in the browser. Please export the photo as JPEG first: open it in Photos, tap Share → Save as JPEG, then select that file.',
+      manifest: null,
+    });
+    return;
+  }
+
+  // Small timeout to let the browser paint the "verifying" screen before heavy work
+  setTimeout(() => verifyFile(file), 50);
+}
 
 document.getElementById('btn-verify-another').addEventListener('click', () => {
   showSection('drop-section');
@@ -116,16 +148,18 @@ async function autoVerifyFromHash(hash) {
 }
 
 async function verifyFile(file) {
-  showSection('verifying-section');
+  console.log('[TrueCapture] verifyFile start:', file.name, file.type, file.size);
   updateStatus('Reading file...');
 
   try {
     const buffer = await readFileAsBuffer(file);
+    console.log('[TrueCapture] File read complete, bytes:', buffer.byteLength);
     updateStatus('Extracting C2PA manifest...');
 
     const c2paBox = extractC2PAManifest(buffer, file.type);
 
     if (!c2paBox) {
+      console.warn('[TrueCapture] No C2PA manifest found in file');
       showResult('unknown', {
         title: 'No C2PA Data Found',
         description: 'This file does not contain a TrueCapture C2PA manifest. It may not have been signed, or uses a different format.',
@@ -134,6 +168,7 @@ async function verifyFile(file) {
       });
       return;
     }
+    console.log('[TrueCapture] C2PA manifest found:', c2paBox?.manifest?.claim_generator);
 
     updateStatus('Verifying cryptographic signature...');
     const { manifest, signature, certificate } = c2paBox;
@@ -206,6 +241,7 @@ async function verifyFile(file) {
     }
 
   } catch (err) {
+    console.error('[TrueCapture] verifyFile error:', err);
     showResult('unknown', {
       title: 'Verification Error',
       description: 'An error occurred during verification: ' + err.message,
