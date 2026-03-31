@@ -131,7 +131,7 @@ async function ensureDediRegistration(publicKeyPem) {
             keyFormat: 'pem',
             entity: {
               name: 'TrueCapture',
-              url: 'https://truecapture.io',
+              url: 'https://www.truecapture.global',
             },
           },
         }),
@@ -293,6 +293,103 @@ function makeCrcTable() {
 // ── Manifest store (in-memory, keyed by verifyHash) ───────────────
 const manifestStore = new Map();
 
+// ── Server-side C2PA extraction ───────────────────────────────────
+function serverExtractC2PA(buffer, mimeType) {
+  try {
+    if (mimeType === 'image/jpeg' || mimeType === 'image/jpg') {
+      let offset = 2;
+      while (offset < buffer.length - 4) {
+        const marker = buffer.readUInt16BE(offset);
+        if (marker === 0xffeb) {
+          const length = buffer.readUInt16BE(offset + 2);
+          if (buffer.slice(offset + 4, offset + 9).toString() === 'C2PA\x00') {
+            return JSON.parse(buffer.slice(offset + 9, offset + 2 + length).toString('utf8'));
+          }
+          offset += 2 + length;
+        } else if ((marker & 0xff00) === 0xff00) {
+          if (marker === 0xffda) break;
+          offset += 2 + buffer.readUInt16BE(offset + 2);
+        } else { offset++; }
+      }
+    } else if (mimeType === 'image/png') {
+      let offset = 8;
+      while (offset < buffer.length) {
+        const len = buffer.readUInt32BE(offset);
+        const type = buffer.slice(offset + 4, offset + 8).toString('ascii');
+        if (type === 'caBX') return JSON.parse(buffer.slice(offset + 8, offset + 8 + len).toString('utf8'));
+        if (type === 'IEND') break;
+        offset += 12 + len;
+      }
+    } else {
+      const MAGIC = Buffer.from('\x00C2PA_TRUECAPTURE\x00');
+      for (let i = buffer.length - MAGIC.length - 4; i >= 0; i--) {
+        if (buffer.slice(i, i + MAGIC.length).equals(MAGIC)) {
+          const jsonLen = buffer.readUInt32BE(i + MAGIC.length);
+          return JSON.parse(buffer.slice(i + MAGIC.length + 4, i + MAGIC.length + 4 + jsonLen).toString('utf8'));
+        }
+      }
+    }
+  } catch {}
+  // Fallback: try binary scan regardless of mime type
+  if (mimeType !== 'application/octet-stream') return serverExtractC2PA(buffer, 'application/octet-stream');
+  return null;
+}
+
+function serverStripC2PA(buffer, mimeType) {
+  try {
+    if (mimeType === 'image/jpeg' || mimeType === 'image/jpg') {
+      let offset = 2;
+      while (offset < buffer.length - 4) {
+        const marker = buffer.readUInt16BE(offset);
+        if (marker === 0xffeb) {
+          const length = buffer.readUInt16BE(offset + 2);
+          if (buffer.slice(offset + 4, offset + 9).toString() === 'C2PA\x00') {
+            return Buffer.concat([buffer.slice(0, 2), buffer.slice(offset + 2 + length)]);
+          }
+          offset += 2 + length;
+        } else if ((marker & 0xff00) === 0xff00) {
+          if (marker === 0xffda) break;
+          offset += 2 + buffer.readUInt16BE(offset + 2);
+        } else { offset++; }
+      }
+    } else if (mimeType === 'image/png') {
+      let offset = 8;
+      while (offset < buffer.length) {
+        const len = buffer.readUInt32BE(offset);
+        const type = buffer.slice(offset + 4, offset + 8).toString('ascii');
+        if (type === 'caBX') return Buffer.concat([buffer.slice(0, offset), buffer.slice(offset + 12 + len)]);
+        if (type === 'IEND') break;
+        offset += 12 + len;
+      }
+    } else {
+      const MAGIC = Buffer.from('\x00C2PA_TRUECAPTURE\x00');
+      for (let i = buffer.length - MAGIC.length - 4; i >= 0; i--) {
+        if (buffer.slice(i, i + MAGIC.length).equals(MAGIC)) return buffer.slice(0, i);
+      }
+    }
+  } catch {}
+  return buffer;
+}
+
+async function dediLookup(recordId) {
+  if (!DEDI_NAMESPACE || !DEDI_REGISTRY) return null;
+  try {
+    const res = await fetch(`${DEDI_API}/dedi/query/${DEDI_NAMESPACE}/${DEDI_REGISTRY}`);
+    if (!res.ok) return null;
+    const body = await res.json();
+    const record = (body?.data?.records || []).find(r => r.record_id === recordId);
+    if (!record) return null;
+    return {
+      record_id: record.record_id,
+      record_name: record.record_name,
+      state: record.state,
+      created_at: record.created_at,
+      entity: record.details?.entity || null,
+      keyType: record.details?.keyType || null,
+    };
+  } catch { return null; }
+}
+
 // ── Routes ────────────────────────────────────────────────────────
 fastify.get('/health', async () => ({
   status: 'ok',
@@ -356,36 +453,91 @@ fastify.get('/manifest/:hash', async (request, reply) => {
   return entry;
 });
 
+// POST /verify — server-side C2PA verification, works on all browsers/devices
+fastify.post('/verify', async (request, reply) => {
+  try {
+    const parts = request.parts();
+    let fileBuffer = null;
+    let mimeType = 'application/octet-stream';
+
+    for await (const part of parts) {
+      if (part.type === 'file') {
+        const chunks = [];
+        for await (const chunk of part.file) chunks.push(chunk);
+        fileBuffer = Buffer.concat(chunks);
+        mimeType = part.mimetype || 'application/octet-stream';
+      }
+    }
+
+    if (!fileBuffer) return reply.status(400).send({ error: 'No file provided' });
+
+    const c2paBox = serverExtractC2PA(fileBuffer, mimeType);
+
+    if (!c2paBox) {
+      return {
+        verdict: 'unsigned',
+        title: 'No C2PA Data Found',
+        description: 'This file does not contain a TrueCapture C2PA manifest. It may not have been signed with TrueCapture.',
+        manifest: null,
+      };
+    }
+
+    const { manifest, signature } = c2paBox;
+    const manifestJson = JSON.stringify(manifest);
+
+    // Verify the RSASSA-PKCS1-v1_5 / SHA-256 signature
+    let sigValid = false;
+    try {
+      const verify = crypto.createVerify('SHA256');
+      verify.update(manifestJson);
+      sigValid = verify.verify(manifest.public_key_pem, signature, 'base64');
+    } catch (err) {
+      fastify.log.warn('Signature verification threw:', err.message);
+    }
+
+    // Strip the C2PA block then hash the original content
+    const strippedBuffer = serverStripC2PA(fileBuffer, mimeType);
+    const fileHash = crypto.createHash('sha256').update(strippedBuffer).digest('hex');
+    const hashMatch = manifest.file_hash === fileHash;
+
+    // Short verify hash (same algorithm as /sign uses)
+    const verifyHash = crypto.createHash('sha256')
+      .update(manifestJson + signature).digest('hex').substring(0, 16);
+
+    // DeDi key registry lookup
+    const dediRecord = manifest.dedi_record_id
+      ? await dediLookup(manifest.dedi_record_id)
+      : null;
+
+    let verdict, title, description;
+    if (sigValid && hashMatch) {
+      verdict = 'authentic';
+      title = 'Authentic';
+      description = 'This file has a valid C2PA signature. The content has not been modified since it was signed by TrueCapture.';
+    } else if (sigValid && !hashMatch) {
+      verdict = 'tampered';
+      title = 'Tampered';
+      description = 'The signature is valid but the file content has been modified since signing. The hash does not match.';
+    } else {
+      verdict = 'tampered';
+      title = 'Invalid Signature';
+      description = 'The cryptographic signature is invalid. This file may have been tampered with or was not signed by TrueCapture.';
+    }
+
+    return { verdict, title, description, manifest, verifyHash, sigValid, hashMatch, fileHash, dediRecord };
+
+  } catch (err) {
+    fastify.log.error('POST /verify error:', err);
+    return reply.status(500).send({ error: 'Verification failed', details: err.message });
+  }
+});
+
 // Proxy DeDi record lookup — api.dedi.global returns 500 when Origin header
 // is present (browser CORS), so the verify page calls this instead.
 fastify.get('/dedi-lookup/:recordId', async (request, reply) => {
-  if (!DEDI_NAMESPACE || !DEDI_REGISTRY) {
-    return reply.status(503).send({ error: 'DeDi not configured' });
-  }
-  try {
-    const res = await fetch(
-      `${DEDI_API}/dedi/query/${DEDI_NAMESPACE}/${DEDI_REGISTRY}`
-    );
-    if (!res.ok) return reply.status(res.status).send({ error: 'DeDi query failed' });
-
-    const body = await res.json();
-    const records = body?.data?.records || [];
-    const record = records.find(r => r.record_id === request.params.recordId);
-
-    if (!record) return reply.status(404).send({ error: 'Record not found' });
-
-    return {
-      record_id: record.record_id,
-      record_name: record.record_name,
-      state: record.state,
-      created_at: record.created_at,
-      entity: record.details?.entity || null,
-      keyType: record.details?.keyType || null,
-    };
-  } catch (err) {
-    fastify.log.error('DeDi lookup failed:', err.message);
-    return reply.status(502).send({ error: 'DeDi unavailable' });
-  }
+  const result = await dediLookup(request.params.recordId);
+  if (!result) return reply.status(404).send({ error: 'Record not found' });
+  return result;
 });
 
 fastify.get('/public-key', async () => {

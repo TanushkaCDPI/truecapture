@@ -270,6 +270,16 @@ main {
   font-weight: 500;
 }
 
+.assertions-toggle {
+  display: inline-block;
+  font-size: 12px;
+  color: var(--muted);
+  text-decoration: none;
+  padding: 4px 0;
+  transition: color 0.15s;
+}
+.assertions-toggle:hover { color: var(--text); }
+
 .assertion-item {
   padding: 12px 14px;
   background: #13131f;

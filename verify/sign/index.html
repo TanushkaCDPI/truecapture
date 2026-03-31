@@ -1,4 +1,4 @@
-<!-- v20260326-2 -->
+<!-- v20260326-3 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -640,9 +640,42 @@ if (!isMobile) {
 // <label for="input-photo"> handles the click — no JS needed for that.
 document.getElementById('input-photo').addEventListener('change', async (e) => {
   const file = e.target.files[0];
-  if (file) await processFile(file, { source: 'camera-photo', capturedAt: new Date().toISOString() });
+  if (!file) return;
+
+  // Convert any image (incl. HEIC) to JPEG via canvas before signing
+  if (file.type.startsWith('image/')) {
+    try {
+      const jpeg = await toJpeg(file);
+      await processFile(jpeg, { source: 'camera-photo', capturedAt: new Date().toISOString() });
+    } catch (err) {
+      console.error('JPEG conversion failed, using original:', err);
+      await processFile(file, { source: 'camera-photo', capturedAt: new Date().toISOString() });
+    }
+  } else {
+    await processFile(file, { source: 'camera-photo', capturedAt: new Date().toISOString() });
+  }
   e.target.value = '';
 });
+
+function toJpeg(file) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const canvas = document.createElement('canvas');
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      canvas.getContext('2d').drawImage(img, 0, 0);
+      canvas.toBlob(blob => {
+        if (!blob) { reject(new Error('canvas.toBlob returned null')); return; }
+        resolve(new File([blob], 'photo.jpg', { type: 'image/jpeg' }));
+      }, 'image/jpeg', 0.95);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Image load failed')); };
+    img.src = url;
+  });
+}
 
 // ── Record Video ──────────────────────────────────────────────────
 document.getElementById('btn-record-video').addEventListener('click', () => {

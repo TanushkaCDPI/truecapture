@@ -5,6 +5,64 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TrueCapture — Verify Media</title>
   <link rel="stylesheet" href="styles.css">
+  <style>
+    /* Mobile: hide the full upload experience, show the guidance message instead.
+       Using !important so CSS wins over any inline style JS may set later. */
+    html.is-mobile #drop-section,
+    html.is-mobile #expected-hash-box { display: none !important; }
+    html.is-mobile #mobile-msg        { display: block !important; }
+  </style>
+  <script>
+    // Runs immediately — sets class on <html> before <body> is parsed,
+    // so CSS hides the right elements from the very first paint.
+    if (/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)) {
+      document.documentElement.classList.add('is-mobile');
+    }
+
+    // handleFile — defined in <head> so it exists before the input element is in the DOM.
+    // Guard with window._handling prevents double-processing when onchange + oninput
+    // + polling all fire for the same selection.
+    function handleFile(file) {
+      if (!file || window._handling) return;
+      window._handling = true;
+      // Auto-reset after 3s so future selections aren't blocked
+      setTimeout(function() { window._handling = false; }, 3000);
+
+      console.log('[TrueCapture] handleFile:', file.name, file.type, file.size);
+      updateStatus('File received: ' + file.name);
+      showSection('verifying-section');
+
+      var isHeic = file.type === 'image/heic' || file.type === 'image/heif' ||
+        file.name.toLowerCase().endsWith('.heic') || file.name.toLowerCase().endsWith('.heif');
+
+      if (isHeic) {
+        console.warn('[TrueCapture] HEIC file — not supported in browser');
+        showResult('unknown', {
+          title: 'Unsupported Format',
+          description: 'HEIC photos cannot be verified in the browser. Please export the photo as JPEG first: open it in Photos, tap Share \u2192 Save as JPEG, then select that file.',
+          manifest: null,
+        });
+        return;
+      }
+
+      setTimeout(function() { uploadAndVerify(file); }, 50);
+    }
+
+    // startPolling — called onclick so polling begins the moment the picker opens.
+    // Fallback for iOS Safari's known bug where onchange doesn't fire for files
+    // selected from the Files app or Downloads folder.
+    function startPolling(input) {
+      var deadline = Date.now() + 30000;
+      var id = setInterval(function() {
+        if (input.files && input.files.length > 0) {
+          clearInterval(id);
+          handleFile(input.files[0]);
+        } else if (Date.now() > deadline) {
+          clearInterval(id);
+        }
+      }, 100);
+    }
+  </script>
 </head>
 <body>
   <div id="app">
@@ -25,6 +83,22 @@
     </header>
 
     <main>
+      <!-- Mobile message — shown instead of the upload zone on phones/tablets -->
+      <div id="mobile-msg" style="display:none"><!-- shown by CSS on .is-mobile -->
+        <div style="border:1px solid var(--border); border-radius:var(--radius); padding:40px 32px; text-align:center; background:var(--surface);">
+          <div style="width:52px;height:52px;background:rgba(99,102,241,0.12);border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="1.5">
+              <rect x="5" y="2" width="14" height="20" rx="2"/>
+              <line x1="12" y1="18" x2="12.01" y2="18"/>
+            </svg>
+          </div>
+          <h2 style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px;letter-spacing:-0.01em;">Verifying on mobile</h2>
+          <p style="font-size:15px;color:var(--muted);line-height:1.65;margin-bottom:20px;">Tap the <strong style="color:var(--text);">truecapture.global</strong> link shared in the caption or description — the verdict loads instantly, no upload needed.</p>
+          <div style="width:100%;height:1px;background:var(--border);margin:20px 0;"></div>
+          <p style="font-size:13px;color:var(--muted);line-height:1.6;">To verify a file directly, open this page on a desktop or laptop.</p>
+        </div>
+      </div>
+
       <!-- Drop Zone -->
       <div id="drop-section">
         <div class="drop-zone" id="drop-zone">
@@ -37,10 +111,11 @@
           </div>
           <h2>Verify a signed file</h2>
           <p>Select a signed image or video to check its authenticity</p>
-          <label class="select-btn" for="file-input">
-            Select File
-          </label>
-          <input type="file" id="file-input" accept="image/*,video/*" style="display:none">
+          <input type="file" id="file-input" accept="image/*,video/*"
+                 onchange="handleFile(this.files[0])"
+                 oninput="handleFile(this.files[0])"
+                 onclick="startPolling(this)"
+                 style="display:block; width:100%; max-width:320px; margin:0 auto; padding:14px 20px; font-size:16px; font-weight:600; font-family:inherit; background:#6366f1; color:#fff; border:none; border-radius:12px; cursor:pointer;">
         </div>
 
         <div class="expected-hash" id="expected-hash-box" style="display:none">
