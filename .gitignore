@@ -5,9 +5,19 @@ node_modules/
 .env
 **/.env
 .env.local
+*.local
 *.log
 .DS_Store
 **/.DS_Store
 dist/
 build/
 .claude/
+
+# Private key files — never commit these
+*.pem
+*.p12
+*.pfx
+*.key
+
+# Exception: allow .env.example (template only, no real values)
+!.env.example
