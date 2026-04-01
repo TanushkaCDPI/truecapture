@@ -1,8 +1,30 @@
 # TrueCapture
 
-**Production-ready browser-based media signing, built on the C2PA open standard.**
+**Production-ready media signing for browser and mobile, built on the C2PA open standard.**
 
-TrueCapture lets journalists, public figures, and organisations cryptographically sign photos and videos at the moment of capture. Each signed file carries an embedded C2PA manifest containing a SHA-256 hash of the content, an ECDSA-P256 signature, and a reference to the signer's public key on [DeDi.global](https://dedi.global) — a decentralised key registry. If a single pixel changes after signing, the signature breaks. Anyone with the verify link gets an instant, server-side verdict — no app, no account, no trust in TrueCapture infrastructure required.
+TrueCapture lets anyone cryptographically sign photos and videos at the moment of capture. Each signed file carries an embedded C2PA manifest containing a SHA-256 hash of the content, an ECDSA-P256 signature, and a reference to the signer's public key on [DeDi.global](https://dedi.global), a decentralised key registry. If a single pixel changes after signing, the signature breaks. Anyone with the verify link gets an instant, server-side verdict with no app, no account, and no dependency on TrueCapture infrastructure required.
+
+---
+
+## Who is this for?
+
+**Journalists and news organisations** Field reporters and newsrooms who need to prove footage is authentic before publication.
+
+**Photojournalists** Photographers whose work needs to be verifiable by editors, fact-checkers, and the public.
+
+**Public figures and politicians** Anyone making official statements who needs protection against fake attribution.
+
+**Doctors and health professionals** Medical practitioners sharing guidance who need to distinguish their content from impersonation.
+
+**Legal and law enforcement** Officers, investigators, and legal teams handling digital evidence that must survive scrutiny.
+
+**Financial institutions** Banks and finance teams protecting high-value authorisation workflows against deepfake fraud.
+
+**Content creators and influencers** Creators who need to prove their content is original and protect against AI impersonation.
+
+**Human rights workers and activists** Field documenters whose recordings of events need cryptographic proof to be taken seriously.
+
+**Anyone** who needs to prove a photo or video is real, unedited, and genuinely theirs.
 
 ---
 
