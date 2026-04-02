@@ -28,6 +28,22 @@ TrueCapture lets anyone cryptographically sign photos and videos at the moment o
 
 ---
 
+## SDK
+
+For organisations embedding TrueCapture signing directly into their own apps — BBC, Reuters, AP, or any news org, legal team, or institution that needs their content signed as themselves rather than as TrueCapture.
+
+The SDK supports:
+- On-device signing using Secure Enclave (iOS) and Android Keystore (Android) — private key never leaves the device
+- Offline signing — works with zero connectivity, syncs when connection returns
+- Optional edit chain — extends the C2PA manifest after authorised edits, compatible with Adobe Lightroom and Photoshop
+- iOS (Swift), Android (Kotlin), React Native
+
+Status: specification complete, implementation in progress. See [SDK_SPEC.md](./SDK_SPEC.md) for the full technical specification.
+
+Contact [tanushka@cdpi.dev](mailto:tanushka@cdpi.dev) to discuss integration.
+
+---
+
 ## Live demo
 
 | | |
