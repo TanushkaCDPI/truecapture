@@ -23,9 +23,50 @@
         </svg>
         TrueCapture
       </a>
-      <a href="/verify" class="nav-verify">Verify a file →</a>
+      <!-- Desktop nav links -->
+      <div class="nav-links">
+        <a href="https://github.com/TanushkaCDPI/truecapture" target="_blank" rel="noopener" class="nav-link">GitHub</a>
+        <a href="/privacy" class="nav-link">Privacy</a>
+        <a href="/verify" class="nav-link">Verify a file →</a>
+      </div>
+
+      <!-- Mobile hamburger -->
+      <button class="nav-hamburger" id="nav-hamburger" aria-label="Open menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+
+    <!-- Mobile dropdown -->
+    <div class="nav-dropdown" id="nav-dropdown" aria-hidden="true">
+      <a href="https://github.com/TanushkaCDPI/truecapture" target="_blank" rel="noopener" class="nav-dropdown-link">GitHub</a>
+      <a href="/privacy" class="nav-dropdown-link">Privacy</a>
+      <a href="/verify" class="nav-dropdown-link">Verify a file →</a>
     </div>
   </nav>
+
+  <script>
+    (function() {
+      var btn = document.getElementById('nav-hamburger');
+      var dropdown = document.getElementById('nav-dropdown');
+      function close() {
+        dropdown.classList.remove('open');
+        btn.setAttribute('aria-expanded', 'false');
+        dropdown.setAttribute('aria-hidden', 'true');
+      }
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var isOpen = dropdown.classList.toggle('open');
+        btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        dropdown.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
+      });
+      document.addEventListener('click', function(e) {
+        if (!dropdown.contains(e.target) && e.target !== btn) close();
+      });
+      dropdown.querySelectorAll('.nav-dropdown-link').forEach(function(a) {
+        a.addEventListener('click', close);
+      });
+    })();
+  </script>
 
   <!-- HERO -->
   <section class="hero">
