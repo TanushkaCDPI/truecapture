@@ -3,6 +3,7 @@
     { "source": "/verify/:hash", "destination": "/verify/index.html" },
     { "source": "/verify", "destination": "/verify/index.html" },
     { "source": "/sign", "destination": "/sign/index.html" },
-    { "source": "/privacy", "destination": "/privacy/index.html" }
+    { "source": "/privacy", "destination": "/privacy/index.html" },
+    { "source": "/faq", "destination": "/faq/index.html" }
   ]
 }

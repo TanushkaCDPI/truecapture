@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TrueCapture — FAQs</title>
+  <meta name="description" content="Frequently asked questions about how TrueCapture works.">
+  <link rel="stylesheet" href="../landing.css">
+  <style>
+    .faq-hero {
+      padding: 64px 0 48px;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+    }
+    .faq-hero h1 {
+      font-size: clamp(28px, 5vw, 42px);
+      font-weight: 800;
+      color: var(--navy);
+      letter-spacing: -0.02em;
+      margin-bottom: 12px;
+    }
+    .faq-hero p {
+      font-size: 18px;
+      color: var(--muted);
+    }
+
+    .faq-list {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 48px 0 80px;
+    }
+
+    .faq-item {
+      border-bottom: 1px solid var(--border);
+    }
+
+    .faq-question {
+      width: 100%;
+      background: none;
+      border: none;
+      padding: 22px 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      cursor: pointer;
+      text-align: left;
+      font-family: inherit;
+    }
+    .faq-question-text {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--navy);
+      line-height: 1.4;
+    }
+    .faq-chevron {
+      flex-shrink: 0;
+      width: 20px;
+      height: 20px;
+      color: var(--indigo);
+      transition: transform 0.2s ease;
+    }
+    .faq-item.open .faq-chevron {
+      transform: rotate(180deg);
+    }
+
+    .faq-answer {
+      display: none;
+      padding: 0 0 24px;
+    }
+    .faq-item.open .faq-answer {
+      display: block;
+    }
+    .faq-answer p,
+    .faq-answer li {
+      font-size: 15px;
+      color: var(--text);
+      line-height: 1.75;
+    }
+    .faq-answer ul {
+      margin: 8px 0 0 20px;
+    }
+    .faq-answer ul li {
+      margin-bottom: 6px;
+    }
+    .faq-answer a {
+      color: var(--indigo);
+      text-decoration: none;
+    }
+    .faq-answer a:hover { text-decoration: underline; }
+    .faq-answer p + p { margin-top: 10px; }
+    .faq-answer p + ul { margin-top: 8px; }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <div class="nav-inner">
+      <a href="/" class="nav-logo">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="10" stroke="#4338ca" stroke-width="2"/>
+          <path d="M12 2C12 2 8 6 8 12C8 18 12 22 12 22" stroke="#4338ca" stroke-width="1.5"/>
+          <path d="M12 2C12 2 16 6 16 12C16 18 12 22 12 22" stroke="#4338ca" stroke-width="1.5"/>
+          <path d="M2 12H22" stroke="#4338ca" stroke-width="1.5"/>
+          <circle cx="12" cy="12" r="2" fill="#4338ca"/>
+        </svg>
+        TrueCapture
+      </a>
+      <div class="nav-links">
+        <a href="/faq" class="nav-link">FAQs</a>
+        <a href="https://github.com/TanushkaCDPI/truecapture" target="_blank" rel="noopener" class="nav-link">GitHub</a>
+        <a href="/privacy" class="nav-link">Privacy</a>
+        <a href="/verify" class="nav-link">Verify a file →</a>
+      </div>
+      <button class="nav-hamburger" id="nav-hamburger" aria-label="Open menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+    <div class="nav-dropdown" id="nav-dropdown" aria-hidden="true">
+      <a href="/faq" class="nav-dropdown-link">FAQs</a>
+      <a href="https://github.com/TanushkaCDPI/truecapture" target="_blank" rel="noopener" class="nav-dropdown-link">GitHub</a>
+      <a href="/privacy" class="nav-dropdown-link">Privacy</a>
+      <a href="/verify" class="nav-dropdown-link">Verify a file →</a>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="faq-hero">
+    <div class="container">
+      <h1>Frequently Asked Questions</h1>
+      <p>Everything you need to know about how TrueCapture works.</p>
+    </div>
+  </section>
+
+  <!-- FAQ LIST -->
+  <div class="container">
+    <div class="faq-list">
+
+      <div class="faq-item">
+        <button class="faq-question">
+          <span class="faq-question-text">How can I integrate with TrueCapture as an institution?</span>
+          <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </button>
+        <div class="faq-answer">
+          <p><strong>Example: News Agencies</strong></p>
+          <ul>
+            <li>Integrate the SDK with their mobile app</li>
+            <li>A reporter opens the mobile app on site to capture live photos or videos</li>
+            <li>TrueCapture automatically signs photos and videos using the ECDSA key stored securely on the device</li>
+            <li>The signing is designed to support offline signing, allowing capture in remote locations. The photo or video would never leave the device — all signing happens locally</li>
+            <li>The URL shows <em>Signed by NewsAgencyName</em> — TrueCapture's work happens quietly on the backend, with the frontend completely owned by the Agency</li>
+            <li>The News Agency can verify the authenticity of the captured photo or video immediately</li>
+            <li>Any editing done through C2PA-compliant software such as Adobe adds another link to the Authentic tag, showing <em>Edited by NewsAgencyDesk</em> — brightness, contrast [with edit logs] — to preserve credibility</li>
+            <li>Any attempts to alter the content, such as merging with another file, will break the signature and upon verification show <em>No Data Found</em></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question">
+          <span class="faq-question-text">How can I use TrueCapture as an individual?</span>
+          <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </button>
+        <div class="faq-answer">
+          <ul>
+            <li>Download the Chrome extension on browser, or open the mobile web app at <a href="https://www.truecapture.global/sign">truecapture.global/sign</a> on Safari or Chrome</li>
+            <li>Capture the photo or video live</li>
+            <li>The file is temporarily sent to TrueCapture servers to digitally sign the file, then returned to you signed as <em>Signed by TrueCapture</em> along with a verification link. No data is stored — the file is deleted from TrueCapture servers immediately</li>
+            <li>Individuals can also fork the project to sign each file themselves and not use TrueCapture servers</li>
+            <li>The verification link can be shared publicly as part of a caption to allow anyone to check the authenticity of the file</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question">
+          <span class="faq-question-text">What data does TrueCapture collect?</span>
+          <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </button>
+        <div class="faq-answer">
+          <p>We do not collect personal information. When you sign a file, the media is sent to our signing server, cryptographically signed, and returned to you. We store only the file hash and verify link — not the file itself, not your name, not your email, not your IP address.</p>
+          <p>See our <a href="/privacy">Privacy Policy</a> for more information.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question">
+          <span class="faq-question-text">Why is the file sent to a signing server?</span>
+          <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </button>
+        <div class="faq-answer">
+          <p>When organisations download an SDK, the file can be signed locally and never leave the device. When individuals use the web app, Web Crypto API restrictions in Safari's security model prevent storing and using a private key reliably across sessions in a web browser.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question">
+          <span class="faq-question-text">Why can't I verify a file on my iPhone by uploading it?</span>
+          <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </button>
+        <div class="faq-answer">
+          <p>iOS Safari restricts web pages from reading files from the Downloads or Files app. This is an Apple security restriction we cannot work around in a web browser.</p>
+          <p>On mobile, use the verify link shared alongside the file — tap it and the verdict loads instantly with no upload needed. Desktop browsers support full file upload verification.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question">
+          <span class="faq-question-text">Can this be used offline or in remote areas?</span>
+          <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </button>
+        <div class="faq-answer">
+          <p>Yes, this is possible in the SDK version. The SDK spec is available on <a href="https://github.com/TanushkaCDPI/truecapture" target="_blank" rel="noopener">GitHub</a> — the entire SDK can be developed and deployed based on organisational requirements.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question">
+          <span class="faq-question-text">Why do you use the ECDSA key? And how do you comply with C2PA?</span>
+          <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </button>
+        <div class="faq-answer">
+          <p>ECDSA P-256 is the key algorithm adopted under the globally championed C2PA standard. It is important that this effort is interoperable to ensure widespread usage.</p>
+          <p>In the SDK, the private key is generated on-device and stored in the device's secure hardware chip (Secure Enclave on iOS, Android Keystore on Android). It never leaves the device. In the web app or Chrome extension, the private key is held securely on TrueCapture's signing server. Files are signed and returned to you immediately. No file content is stored.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question">
+          <span class="faq-question-text">Can this be signed by MyOrganisationName without using TrueCapture anywhere?</span>
+          <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </button>
+        <div class="faq-answer">
+          <p>Yes, this is possible through the SDK. It is also possible when users fork the project and deploy their own instance. Instructions are available on our GitHub under <a href="https://github.com/TanushkaCDPI/truecapture/blob/main/DEPLOY_YOUR_OWN.md" target="_blank" rel="noopener">DEPLOY_YOUR_OWN.md</a>.</p>
+          <p>It's not possible through a login option at the web app layer because TrueCapture does not have the ability to verify the identity of individuals and institutions across the world, particularly as AI-forgery of static images becomes easier. This is also why TrueCapture only allows signing of live images or videos at the point of capture itself.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question">
+          <span class="faq-question-text">If social media strips the C2PA manifest when I upload, does verification still work?</span>
+          <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </button>
+        <div class="faq-answer">
+          <p>Yes — this is exactly why the verify link matters. Share the link in your caption alongside the post. Even if the platform strips the manifest from the file, the link always points back to the original signed record. The proof lives at the link, not in the file copy on social media.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question">
+          <span class="faq-question-text">What is DeDi?</span>
+          <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </button>
+        <div class="faq-answer">
+          <p>DeDi is a public registry used to store the public key of the signer so that anyone may click on the verification link accompanying each file and check for its authenticity. Read more at <a href="https://dedi.global" target="_blank" rel="noopener">DeDi.global</a>.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question">
+          <span class="faq-question-text">What are the limitations of this?</span>
+          <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </button>
+        <div class="faq-answer">
+          <p>As AI advances, if an individual is able to install deepfake software on their laptop or mobile such that their face is altered even within a live recording (to impersonate a famous personality or similar), this tool will not be able to detect it. TrueCapture signs live photos and videos — but if the live file itself is compromised at capture time, the tool cannot detect that.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question">
+          <span class="faq-question-text">What happens if TrueCapture shuts down?</span>
+          <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </button>
+        <div class="faq-answer">
+          <p>The file's C2PA manifest is self-contained. The public key is on DeDi's decentralised network. Anyone who has the original signed file can verify it independently using any C2PA-compatible tool, even if TrueCapture no longer exists.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question">
+          <span class="faq-question-text">GitHub shows that Claude Code helped write the code for this. How do I know that it's trustworthy?</span>
+          <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </button>
+        <div class="faq-answer">
+          <p>The power of this tool is not in its code as much as it is in the architecture, tech stack, and integrations that CDPI developed to address a critical problem. The tool is available for free — you can download and test it. The code is also open source, so you can review it yourselves before considering it for your organisational requirements.</p>
+          <p>Feel free to reach out to us at <a href="mailto:tanushka@cdpi.dev">tanushka@cdpi.dev</a> for any queries, collaboration ideas, or bugs!</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="container">
+      <div class="footer-inner">
+        <a href="/" class="footer-logo">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="10" stroke="#4338ca" stroke-width="2"/>
+            <path d="M12 2C12 2 8 6 8 12C8 18 12 22 12 22" stroke="#4338ca" stroke-width="1.5"/>
+            <path d="M12 2C12 2 16 6 16 12C16 18 12 22 12 22" stroke="#4338ca" stroke-width="1.5"/>
+            <path d="M2 12H22" stroke="#4338ca" stroke-width="1.5"/>
+            <circle cx="12" cy="12" r="2" fill="#4338ca"/>
+          </svg>
+          TrueCapture
+        </a>
+        <div class="footer-links">
+          <a href="/verify">Verify a file</a>
+          <a href="https://c2pa.org" target="_blank" rel="noopener">C2PA Standard</a>
+          <a href="https://dedi.global" target="_blank" rel="noopener">DeDi.global</a>
+          <a href="https://github.com/TanushkaCDPI/truecapture" target="_blank" rel="noopener">GitHub</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>Built on C2PA · Keys on DeDi.global · Deployed on Railway</p>
+        <p>Build with us: <strong>Tanushka Vaid</strong>, Chief of Staff, CDPI · <a href="mailto:tanushka@cdpi.dev">tanushka@cdpi.dev</a></p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Hamburger menu
+    (function() {
+      var btn = document.getElementById('nav-hamburger');
+      var dropdown = document.getElementById('nav-dropdown');
+      function close() {
+        dropdown.classList.remove('open');
+        btn.setAttribute('aria-expanded', 'false');
+        dropdown.setAttribute('aria-hidden', 'true');
+      }
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var isOpen = dropdown.classList.toggle('open');
+        btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        dropdown.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
+      });
+      document.addEventListener('click', function(e) {
+        if (!dropdown.contains(e.target) && e.target !== btn) close();
+      });
+      dropdown.querySelectorAll('.nav-dropdown-link').forEach(function(a) {
+        a.addEventListener('click', close);
+      });
+    })();
+
+    // FAQ accordion
+    document.querySelectorAll('.faq-question').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var item = btn.closest('.faq-item');
+        var isOpen = item.classList.contains('open');
+        // Close all
+        document.querySelectorAll('.faq-item.open').forEach(function(el) {
+          el.classList.remove('open');
+        });
+        // Open this one if it was closed
+        if (!isOpen) item.classList.add('open');
+      });
+    });
+  </script>
+
+</body>
+</html>
