@@ -4,116 +4,188 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TrueCapture — Privacy Policy</title>
-  <link rel="stylesheet" href="../styles.css">
+  <meta name="description" content="TrueCapture privacy policy — what we collect, what we don't, and how signing works.">
+  <link rel="stylesheet" href="../landing.css">
   <style>
-    .privacy-content {
-      max-width: 640px;
-      padding: 48px 0 80px;
+    .privacy-hero {
+      padding: 64px 0 48px;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
     }
-    .privacy-content h1 {
-      font-size: 28px;
-      font-weight: 700;
-      color: var(--text);
-      margin-bottom: 8px;
+    .privacy-hero h1 {
+      font-size: clamp(28px, 5vw, 42px);
+      font-weight: 800;
+      color: var(--navy);
+      letter-spacing: -0.02em;
+      margin-bottom: 12px;
     }
-    .privacy-content .last-updated {
-      font-size: 13px;
+    .privacy-hero p {
+      font-size: 18px;
       color: var(--muted);
-      margin-bottom: 48px;
+    }
+
+    .privacy-body {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 48px 0 80px;
     }
     .privacy-section {
       margin-bottom: 36px;
     }
     .privacy-section h2 {
-      font-size: 16px;
-      font-weight: 600;
-      color: var(--accent);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--indigo);
       text-transform: uppercase;
-      letter-spacing: 0.06em;
+      letter-spacing: 0.08em;
       margin-bottom: 10px;
     }
     .privacy-section p {
       font-size: 15px;
       color: var(--text);
-      line-height: 1.7;
+      line-height: 1.75;
     }
     .privacy-section a {
-      color: var(--accent);
+      color: var(--indigo);
       text-decoration: none;
     }
-    .privacy-section a:hover {
-      text-decoration: underline;
-    }
-    footer {
-      border-top: 1px solid var(--border);
-      padding: 24px 0;
+    .privacy-section a:hover { text-decoration: underline; }
+    .last-updated {
       font-size: 13px;
       color: var(--muted);
-    }
-    footer a {
-      color: var(--muted);
-      text-decoration: none;
-    }
-    footer a:hover {
-      color: var(--text);
+      margin-bottom: 48px;
     }
   </style>
 </head>
 <body>
-  <div id="app">
-    <header>
-      <a href="/" class="brand">
-        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="14" cy="14" r="14" fill="#4F46E5" opacity="0.15"/>
-          <circle cx="14" cy="14" r="9" stroke="#6366f1" stroke-width="1.5" fill="none"/>
-          <ellipse cx="14" cy="14" rx="4" ry="9" stroke="#6366f1" stroke-width="1.5" fill="none"/>
-          <line x1="5" y1="14" x2="23" y2="14" stroke="#6366f1" stroke-width="1.5"/>
+
+  <!-- NAV -->
+  <nav>
+    <div class="nav-inner">
+      <a href="/" class="nav-logo">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="10" stroke="#4338ca" stroke-width="2"/>
+          <path d="M12 2C12 2 8 6 8 12C8 18 12 22 12 22" stroke="#4338ca" stroke-width="1.5"/>
+          <path d="M12 2C12 2 16 6 16 12C16 18 12 22 12 22" stroke="#4338ca" stroke-width="1.5"/>
+          <path d="M2 12H22" stroke="#4338ca" stroke-width="1.5"/>
+          <circle cx="12" cy="12" r="2" fill="#4338ca"/>
         </svg>
         TrueCapture
       </a>
-      <span class="c2pa-badge">C2PA</span>
-    </header>
+      <div class="nav-links">
+        <a href="/faq" class="nav-link">FAQs</a>
+        <a href="https://github.com/TanushkaCDPI/truecapture" target="_blank" rel="noopener" class="nav-link">GitHub</a>
+        <a href="/privacy" class="nav-link">Privacy</a>
+        <a href="/verify" class="nav-link">Verify a file →</a>
+      </div>
+      <button class="nav-hamburger" id="nav-hamburger" aria-label="Open menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+    <div class="nav-dropdown" id="nav-dropdown" aria-hidden="true">
+      <a href="/faq" class="nav-dropdown-link">FAQs</a>
+      <a href="https://github.com/TanushkaCDPI/truecapture" target="_blank" rel="noopener" class="nav-dropdown-link">GitHub</a>
+      <a href="/privacy" class="nav-dropdown-link">Privacy</a>
+      <a href="/verify" class="nav-dropdown-link">Verify a file →</a>
+    </div>
+  </nav>
 
-    <main>
-      <div class="privacy-content">
-        <h1>Privacy Policy</h1>
-        <p class="last-updated">Last updated: April 2026</p>
+  <!-- HERO -->
+  <section class="privacy-hero">
+    <div class="container">
+      <h1>Privacy Policy</h1>
+      <p>Last updated: April 2026</p>
+    </div>
+  </section>
 
-        <div class="privacy-section">
-          <h2>What we collect</h2>
-          <p>We do not collect personal information. When you sign a file, the media is sent to our signing server, cryptographically signed, and returned to you. We store only the file hash and verify link — not the file itself, not your name, not your email, not your IP address.</p>
-        </div>
+  <!-- CONTENT -->
+  <div class="container">
+    <div class="privacy-body">
 
-        <div class="privacy-section">
-          <h2>What we don't collect</h2>
-          <p>No account required. No cookies. No tracking. No analytics. No advertising.</p>
-        </div>
+      <div class="privacy-section">
+        <h2>What we collect</h2>
+        <p>We do not collect personal information. When you sign a file, the media is sent to our signing server, cryptographically signed, and returned to you. We store only the file hash and verify link — not the file itself, not your name, not your email, not your IP address.</p>
+      </div>
 
-        <div class="privacy-section">
-          <h2>How signing works</h2>
-          <p>Files are sent to <a href="https://api.truecapture.global">api.truecapture.global</a> for signing. The signed file is returned to you and saved to your device. We retain only a hash of the file (not the file itself) to enable verify link lookups.</p>
-        </div>
+      <div class="privacy-section">
+        <h2>What we don't collect</h2>
+        <p>No account required. No cookies. No tracking. No analytics. No advertising.</p>
+      </div>
 
-        <div class="privacy-section">
-          <h2>Third parties</h2>
-          <p>Public keys are registered on <a href="https://dedi.global" target="_blank" rel="noopener">DeDi.global</a>, a decentralised public key directory. No other third parties receive your data.</p>
-        </div>
+      <div class="privacy-section">
+        <h2>How signing works</h2>
+        <p>Files are sent to <a href="https://api.truecapture.global">api.truecapture.global</a> for signing. The signed file is returned to you and saved to your device. We retain only a hash of the file (not the file itself) to enable verify link lookups.</p>
+      </div>
 
-        <div class="privacy-section">
-          <h2>Open source</h2>
-          <p>TrueCapture is open source. The full codebase is available at <a href="https://github.com/TanushkaCDPI/truecapture" target="_blank" rel="noopener">github.com/TanushkaCDPI/truecapture</a> for independent verification of these claims.</p>
-        </div>
+      <div class="privacy-section">
+        <h2>Third parties</h2>
+        <p>Public keys are registered on <a href="https://dedi.global" target="_blank" rel="noopener">DeDi.global</a>, a decentralised public key directory. No other third parties receive your data.</p>
+      </div>
 
-        <div class="privacy-section">
-          <h2>Contact</h2>
-          <p><a href="mailto:tanushka@cdpi.dev">tanushka@cdpi.dev</a></p>
+      <div class="privacy-section">
+        <h2>Open source</h2>
+        <p>TrueCapture is open source. The full codebase is available at <a href="https://github.com/TanushkaCDPI/truecapture" target="_blank" rel="noopener">github.com/TanushkaCDPI/truecapture</a> for independent verification of these claims.</p>
+      </div>
+
+      <div class="privacy-section">
+        <h2>Contact</h2>
+        <p><a href="mailto:tanushka@cdpi.dev">tanushka@cdpi.dev</a></p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="container">
+      <div class="footer-inner">
+        <a href="/" class="footer-logo">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="10" stroke="#4338ca" stroke-width="2"/>
+            <path d="M12 2C12 2 8 6 8 12C8 18 12 22 12 22" stroke="#4338ca" stroke-width="1.5"/>
+            <path d="M12 2C12 2 16 6 16 12C16 18 12 22 12 22" stroke="#4338ca" stroke-width="1.5"/>
+            <path d="M2 12H22" stroke="#4338ca" stroke-width="1.5"/>
+            <circle cx="12" cy="12" r="2" fill="#4338ca"/>
+          </svg>
+          TrueCapture
+        </a>
+        <div class="footer-links">
+          <a href="/verify">Verify a file</a>
+          <a href="https://c2pa.org" target="_blank" rel="noopener">C2PA Standard</a>
+          <a href="https://dedi.global" target="_blank" rel="noopener">DeDi.global</a>
+          <a href="https://github.com/TanushkaCDPI/truecapture" target="_blank" rel="noopener">GitHub</a>
         </div>
       </div>
-    </main>
+      <div class="footer-bottom">
+        <p>Built on C2PA · Keys on DeDi.global · Deployed on Railway</p>
+        <p>Build with us: <strong>Tanushka Vaid</strong>, Chief of Staff, CDPI · <a href="mailto:tanushka@cdpi.dev">tanushka@cdpi.dev</a></p>
+      </div>
+    </div>
+  </footer>
 
-    <footer>
-      <a href="/">← Back to TrueCapture</a>
-    </footer>
-  </div>
+  <script>
+    (function() {
+      var btn = document.getElementById('nav-hamburger');
+      var dropdown = document.getElementById('nav-dropdown');
+      function close() {
+        dropdown.classList.remove('open');
+        btn.setAttribute('aria-expanded', 'false');
+        dropdown.setAttribute('aria-hidden', 'true');
+      }
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var isOpen = dropdown.classList.toggle('open');
+        btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        dropdown.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
+      });
+      document.addEventListener('click', function(e) {
+        if (!dropdown.contains(e.target) && e.target !== btn) close();
+      });
+      dropdown.querySelectorAll('.nav-dropdown-link').forEach(function(a) {
+        a.addEventListener('click', close);
+      });
+    })();
+  </script>
+
 </body>
 </html>
