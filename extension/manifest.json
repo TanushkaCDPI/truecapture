@@ -1,14 +1,12 @@
 {
   "manifest_version": 3,
   "name": "TrueCapture",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Digitally sign any photo or video at the moment you capture it. Tamper-proof, verifiable by anyone. Built on the C2PA open standard.",
   "permissions": [
-    "activeTab",
     "downloads",
     "clipboardWrite",
-    "storage",
-    "tabCapture"
+    "storage"
   ],
   "host_permissions": [
     "https://api.truecapture.global/*"
