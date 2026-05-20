@@ -4,6 +4,7 @@
     { "source": "/verify", "destination": "/verify/index.html" },
     { "source": "/sign", "destination": "/sign/index.html" },
     { "source": "/privacy", "destination": "/privacy/index.html" },
-    { "source": "/faq", "destination": "/faq/index.html" }
+    { "source": "/faq", "destination": "/faq/index.html" },
+    { "source": "/use-cases", "destination": "/use-cases/index.html" }
   ]
 }
